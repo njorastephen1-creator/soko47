@@ -89,7 +89,7 @@ function Home() {
           <h2 className="font-display text-2xl font-bold">Fresh listings</h2>
           <Link to="/browse" className="text-sm font-semibold text-accent-deep hover:underline">View all</Link>
         </div>
-        <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">{(fresh || []).map((p) => (<ProductCard key={p.id} product={p} />))}</div>
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">{(fresh || []).map((p) => (<ProductCard key={p.id} product={p} />))}</div>
       </section>
       <section className="border-y border-border bg-card py-14">
         <div className="mx-auto max-w-6xl px-4">

@@ -20,11 +20,13 @@ import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedHelpRouteImport } from './routes/_authenticated/help'
 import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated/orders'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedVendorRouteImport } from './routes/_authenticated/vendor'
 import { Route as MarketsIndexRouteImport } from './routes/markets.index'
 import { Route as MarketsCountyRouteImport } from './routes/markets.$county'
 import { Route as ProductIdRouteImport } from './routes/product.$id'
 import { Route as ShopSlugRouteImport } from './routes/shop.$slug'
+import { Route as AuthenticatedEnrichIdRouteImport } from './routes/_authenticated/enrich.$id'
 import { Route as AuthenticatedReceiptIdRouteImport } from './routes/_authenticated/receipt.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -81,6 +83,11 @@ const AuthenticatedOrdersRoute = AuthenticatedOrdersRouteImport.update({
   path: '/orders',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedVendorRoute = AuthenticatedVendorRouteImport.update({
   id: '/vendor',
   path: '/vendor',
@@ -106,6 +113,11 @@ const ShopSlugRoute = ShopSlugRouteImport.update({
   path: '/shop/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedEnrichIdRoute = AuthenticatedEnrichIdRouteImport.update({
+  id: '/enrich/$id',
+  path: '/enrich/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedReceiptIdRoute = AuthenticatedReceiptIdRouteImport.update({
   id: '/receipt/$id',
   path: '/receipt/$id',
@@ -123,11 +135,13 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/help': typeof AuthenticatedHelpRoute
   '/orders': typeof AuthenticatedOrdersRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/vendor': typeof AuthenticatedVendorRoute
   '/markets/$county': typeof MarketsCountyRoute
   '/product/$id': typeof ProductIdRoute
   '/shop/$slug': typeof ShopSlugRoute
   '/markets/': typeof MarketsIndexRoute
+  '/enrich/$id': typeof AuthenticatedEnrichIdRoute
   '/receipt/$id': typeof AuthenticatedReceiptIdRoute
 }
 export interface FileRoutesByTo {
@@ -141,11 +155,13 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/help': typeof AuthenticatedHelpRoute
   '/orders': typeof AuthenticatedOrdersRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/vendor': typeof AuthenticatedVendorRoute
   '/markets/$county': typeof MarketsCountyRoute
   '/product/$id': typeof ProductIdRoute
   '/shop/$slug': typeof ShopSlugRoute
   '/markets': typeof MarketsIndexRoute
+  '/enrich/$id': typeof AuthenticatedEnrichIdRoute
   '/receipt/$id': typeof AuthenticatedReceiptIdRoute
 }
 export interface FileRoutesById {
@@ -161,11 +177,13 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/help': typeof AuthenticatedHelpRoute
   '/_authenticated/orders': typeof AuthenticatedOrdersRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/vendor': typeof AuthenticatedVendorRoute
   '/markets/$county': typeof MarketsCountyRoute
   '/product/$id': typeof ProductIdRoute
   '/shop/$slug': typeof ShopSlugRoute
   '/markets/': typeof MarketsIndexRoute
+  '/_authenticated/enrich/$id': typeof AuthenticatedEnrichIdRoute
   '/_authenticated/receipt/$id': typeof AuthenticatedReceiptIdRoute
 }
 export interface FileRouteTypes {
@@ -181,11 +199,13 @@ export interface FileRouteTypes {
     | '/admin'
     | '/help'
     | '/orders'
+    | '/settings'
     | '/vendor'
     | '/markets/$county'
     | '/product/$id'
     | '/shop/$slug'
     | '/markets/'
+    | '/enrich/$id'
     | '/receipt/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -199,11 +219,13 @@ export interface FileRouteTypes {
     | '/admin'
     | '/help'
     | '/orders'
+    | '/settings'
     | '/vendor'
     | '/markets/$county'
     | '/product/$id'
     | '/shop/$slug'
     | '/markets'
+    | '/enrich/$id'
     | '/receipt/$id'
   id:
     | '__root__'
@@ -218,11 +240,13 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/help'
     | '/_authenticated/orders'
+    | '/_authenticated/settings'
     | '/_authenticated/vendor'
     | '/markets/$county'
     | '/product/$id'
     | '/shop/$slug'
     | '/markets/'
+    | '/_authenticated/enrich/$id'
     | '/_authenticated/receipt/$id'
   fileRoutesById: FileRoutesById
 }
@@ -319,6 +343,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrdersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/vendor': {
       id: '/_authenticated/vendor'
       path: '/vendor'
@@ -354,6 +385,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ShopSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/enrich/$id': {
+      id: '/_authenticated/enrich/$id'
+      path: '/enrich/$id'
+      fullPath: '/enrich/$id'
+      preLoaderRoute: typeof AuthenticatedEnrichIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/receipt/$id': {
       id: '/_authenticated/receipt/$id'
       path: '/receipt/$id'
@@ -369,7 +407,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedHelpRoute: typeof AuthenticatedHelpRoute
   AuthenticatedOrdersRoute: typeof AuthenticatedOrdersRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedVendorRoute: typeof AuthenticatedVendorRoute
+  AuthenticatedEnrichIdRoute: typeof AuthenticatedEnrichIdRoute
   AuthenticatedReceiptIdRoute: typeof AuthenticatedReceiptIdRoute
 }
 
@@ -378,7 +418,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedHelpRoute: AuthenticatedHelpRoute,
   AuthenticatedOrdersRoute: AuthenticatedOrdersRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedVendorRoute: AuthenticatedVendorRoute,
+  AuthenticatedEnrichIdRoute: AuthenticatedEnrichIdRoute,
   AuthenticatedReceiptIdRoute: AuthenticatedReceiptIdRoute,
 }
 

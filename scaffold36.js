@@ -1,4 +1,126 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import fs from 'fs';
+let css = fs.readFileSync('src/styles.css', 'utf8');
+if (!css.includes('padding-bottom: 60px')) {
+  css = css.split('.ad-in { animation: ad-in 0.6s ease both; }').join('.ad-in { animation: ad-in 0.6s ease both; }\n@media (max-width: 767px) { body { padding-bottom: 60px; } }');
+  fs.writeFileSync('src/styles.css', css);
+  console.log('Patched styles.css (mobile nav space)');
+}
+let chrome = fs.readFileSync('src/components/site-chrome.tsx', 'utf8');
+if (!chrome.includes('MobileNav')) {
+  chrome = chrome.split('import { ArrowUp, ChevronDown, MapPin, Menu, Search, ShoppingBasket, Store } from "lucide-react";').join('import { ArrowUp, ChevronDown, Home, MapPin, Menu, Search, ShoppingBasket, ShoppingCart, Store, User } from "lucide-react";');
+  chrome = chrome.split('const footerCols = [').join(`function MobileNav() {
+  const { count } = useCart();
+  const { session } = useSession();
+  const items = [
+    { to: "/", label: "Home", icon: Home, badge: 0 },
+    { to: "/browse", label: "Shop", icon: Search, badge: 0 },
+    { to: "/sell", label: "Sell", icon: Store, badge: 0 },
+    { to: "/cart", label: "Cart", icon: ShoppingCart, badge: count },
+    { to: session ? "/account" : "/auth", label: "Account", icon: User, badge: 0 }
+  ];
+  return (
+    <nav className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 border-t border-border bg-card md:hidden">
+      {items.map((i) => (
+        <Link key={i.label} to={i.to} className="relative flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium text-muted-foreground">
+          <i.icon className="size-5" />
+          {i.label}
+          {i.badge > 0 && <span className="warm-surface absolute left-1/2 top-0.5 ml-1 flex size-4 items-center justify-center rounded-full text-[9px] font-bold">{i.badge}</span>}
+        </Link>
+      ))}
+    </nav>
+  );
+}
+const footerCols = [`);
+  chrome = chrome.split('  return (\n    <header').join('  return (\n    <>\n    <header');
+  chrome = chrome.split('</header>\n  );\n}').join('</header>\n    <MobileNav />\n    </>\n  );\n}');
+  fs.writeFileSync('src/components/site-chrome.tsx', chrome);
+  console.log('Patched site-chrome (mobile bottom nav)');
+}
+const files = {};
+files['src/routes/_authenticated/enrich.$id.tsx'] = `import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Plus, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useSession } from "@/lib/use-session";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { ImageUpload } from "@/components/image-upload";
+export const Route = createFileRoute("/_authenticated/enrich/$id")({ component: EnrichPage });
+function EnrichPage() {
+  const { id } = Route.useParams();
+  const { session } = useSession();
+  const qc = useQueryClient();
+  const navigate = useNavigate();
+  const { data: product } = useQuery({
+    queryKey: ["product-edit", id],
+    queryFn: async () => {
+      const { data } = await supabase.from("products").select("*, vendors(user_id)").eq("id", id).maybeSingle();
+      return data;
+    },
+  });
+  const [form, setForm] = useState<any>(null);
+  const f = form || (product ? { condition: product.condition || "new", brand: product.brand || "", model: product.model || "", description: product.description || "", images: (product.images as string[]) || [], specs: (product.specs as any[]) || [] } : null);
+  if (!product || !f) return <p className="py-16 text-center text-muted-foreground">Loading...</p>;
+  if (product.vendors && session && product.vendors.user_id !== session.user.id) return <p className="py-16 text-center text-muted-foreground">Only the shop owner can edit this listing.</p>;
+  const save = async () => {
+    const { error } = await supabase.from("products").update({ condition: f.condition, brand: f.brand.trim() || null, model: f.model.trim() || null, description: f.description, images: f.images, specs: f.specs.filter((s: any) => s.label && s.value) }).eq("id", id);
+    if (error) return toast.error(error.message);
+    qc.invalidateQueries();
+    toast.success("Listing enriched - buyers now see full details!");
+    navigate({ to: "/product/$id", params: { id } });
+  };
+  return (
+    <div className="mx-auto max-w-2xl px-4 py-10">
+      <h1 className="font-display text-3xl font-bold">Add more info</h1>
+      <p className="mt-1 text-sm text-muted-foreground">Richer listings sell faster - Jiji-style buyers love details.</p>
+      <div className="mt-6 space-y-5 rounded-3xl border border-border bg-card p-6">
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div>
+            <Label>Condition</Label>
+            <select value={f.condition} onChange={(e) => setForm({ ...f, condition: e.target.value })} className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm">
+              <option value="new">Brand new</option>
+              <option value="used">Used</option>
+            </select>
+          </div>
+          <div><Label>Brand</Label><Input value={f.brand} onChange={(e) => setForm({ ...f, brand: e.target.value })} placeholder="e.g. HP" /></div>
+          <div><Label>Model</Label><Input value={f.model} onChange={(e) => setForm({ ...f, model: e.target.value })} placeholder="e.g. EliteBook 840" /></div>
+        </div>
+        <div><Label>Full description</Label><Textarea rows={5} value={f.description} onChange={(e) => setForm({ ...f, description: e.target.value })} placeholder="Tell buyers everything: quality, size, warranty, why it's great..." /></div>
+        <div>
+          <Label>Extra photos</Label>
+          <ImageUpload value="" onChange={(url: string) => setForm({ ...f, images: [...f.images, url] })} />
+          <div className="mt-2 flex flex-wrap gap-2">
+            {f.images.map((img: string, i: number) => (
+              <div key={i} className="relative">
+                <img src={img} alt="" className="size-16 rounded-lg border border-border object-cover" />
+                <button onClick={() => setForm({ ...f, images: f.images.filter((_: string, x: number) => x !== i) })} className="absolute -right-1.5 -top-1.5 rounded-full bg-destructive p-0.5 text-destructive-foreground"><Trash2 className="size-3" /></button>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div>
+          <Label>Key details (specs)</Label>
+          <div className="mt-2 space-y-2">
+            {f.specs.map((s: any, i: number) => (
+              <div key={i} className="flex gap-2">
+                <Input value={s.label} onChange={(e) => setForm({ ...f, specs: f.specs.map((x: any, xi: number) => (xi === i ? { ...x, label: e.target.value } : x)) })} placeholder="e.g. RAM" />
+                <Input value={s.value} onChange={(e) => setForm({ ...f, specs: f.specs.map((x: any, xi: number) => (xi === i ? { ...x, value: e.target.value } : x)) })} placeholder="e.g. 8GB" />
+                <Button variant="ghost" size="sm" onClick={() => setForm({ ...f, specs: f.specs.filter((_: any, xi: number) => xi !== i) })}><Trash2 className="size-4" /></Button>
+              </div>
+            ))}
+          </div>
+          <Button variant="outline" size="sm" className="mt-2" onClick={() => setForm({ ...f, specs: [...f.specs, { label: "", value: "" }] })}><Plus className="size-4" /> Add detail row</Button>
+        </div>
+        <Button size="lg" className="w-full" onClick={save}>Save & publish details</Button>
+      </div>
+    </div>
+  );
+}`;
+files['src/routes/product.$id.tsx'] = `import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { BadgeCheck, ChevronRight, MapPin, MessageCircle, Minus, Phone, Plus, ShieldCheck, ShoppingBasket, Store, Truck } from "lucide-react";
 import { useState } from "react";
@@ -121,4 +243,9 @@ function ProductPage() {
       </div>
     </div>
   );
+}`;
+for (const [file, content] of Object.entries(files)) {
+  fs.writeFileSync(file, content);
+  console.log('Created', file);
 }
+console.log('DONE: jiji-grade products + mobile nav');

@@ -1,4 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import fs from 'fs';
+let index = fs.readFileSync('src/routes/index.tsx', 'utf8');
+if (!index.includes('order("featured"')) {
+  index = index.split('.order("created_at", { ascending: false })').join('.order("featured", { ascending: false }).order("created_at", { ascending: false })');
+  fs.writeFileSync('src/routes/index.tsx', index);
+  console.log('Patched index (featured first)');
+}
+fs.writeFileSync('src/routes/_authenticated/admin.tsx', `import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Ban, CheckCircle2, Megaphone, Package, Star, Store, Users, Wallet } from "lucide-react";
 import { useState } from "react";
@@ -175,3 +182,6 @@ function AdminPage() {
     </div>
   );
 }
+`);
+console.log('Created admin command center');
+console.log('DONE: admin command center');

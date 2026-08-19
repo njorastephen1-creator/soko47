@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowUp, ChevronDown, MapPin, Menu, Search, ShoppingBasket, Store } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { ArrowUp, ChevronDown, Home, MapPin, Menu, Search, ShoppingBasket, ShoppingCart, Store, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { isAdminEmail } from "@/lib/admin";
 import { useCart } from "@/lib/cart";
@@ -25,9 +26,19 @@ export function SiteHeader() {
     setCounty(slug);
     localStorage.setItem("soko47_county", slug);
   };
-  const firstName = (session?.user_metadata?.full_name || "").split(" ")[0];
+  const fullName = (session?.user_metadata?.full_name as string) || (session?.user?.email || "").split("@")[0] || "trader";
+  const { data: myVendor } = useQuery({
+    queryKey: ["my-vendor", session?.user.id],
+    enabled: !!session,
+    queryFn: async () => {
+      const { data } = await supabase.from("vendors").select("id").eq("user_id", session!.user.id).maybeSingle();
+      return data || null;
+    },
+  });
+  const role = myVendor ? "Trader" : "Buyer";
   const signOut = async () => { await supabase.auth.signOut(); navigate({ to: "/", replace: true }); };
   return (
+    <>
     <header className="sticky top-0 z-50 bg-primary-dark text-primary-foreground shadow-soft">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2.5">
         <Link to="/" className="flex items-center gap-2 rounded-md px-1 py-1 hover:bg-primary">
@@ -60,13 +71,14 @@ export function SiteHeader() {
           {session ? (
             <DropdownMenu>
               <DropdownMenuTrigger className="rounded-md px-2 py-1 text-left hover:bg-primary">
-                <span className="block text-[10px] opacity-80">Hello, {firstName || "trader"}</span>
-                <span className="block text-sm font-semibold">Account & Lists <ChevronDown className="inline size-3" /></span>
+                <span className="block text-[10px] opacity-80">Hello, {fullName}</span>
+                <span className="block text-sm font-semibold">{role} · Account & Lists <ChevronDown className="inline size-3" /></span>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild><Link to="/account">Dashboard</Link></DropdownMenuItem>
                 <DropdownMenuItem asChild><Link to="/vendor">Vendor dashboard</Link></DropdownMenuItem>
                 <DropdownMenuItem asChild><Link to="/orders">My orders</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link to="/settings">Settings</Link></DropdownMenuItem>
                 <DropdownMenuItem asChild><Link to="/help">Help & support</Link></DropdownMenuItem>
                 {isAdminEmail(session?.user?.email) && (<DropdownMenuItem asChild><Link to="/admin">Admin panel</Link></DropdownMenuItem>)}
                 <DropdownMenuItem onClick={signOut}>Sign out</DropdownMenuItem>
@@ -110,6 +122,30 @@ export function SiteHeader() {
         </div>
       </nav>
     </header>
+    <MobileNav />
+    </>
+  );
+}
+function MobileNav() {
+  const { count } = useCart();
+  const { session } = useSession();
+  const items = [
+    { to: "/", label: "Home", icon: Home, badge: 0 },
+    { to: "/browse", label: "Shop", icon: Search, badge: 0 },
+    { to: "/sell", label: "Sell", icon: Store, badge: 0 },
+    { to: "/cart", label: "Cart", icon: ShoppingCart, badge: count },
+    { to: session ? "/account" : "/auth", label: "Account", icon: User, badge: 0 }
+  ];
+  return (
+    <nav className="fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 border-t border-border bg-card md:hidden">
+      {items.map((i) => (
+        <Link key={i.label} to={i.to} className="relative flex flex-col items-center gap-0.5 py-2 text-[10px] font-medium text-muted-foreground">
+          <i.icon className="size-5" />
+          {i.label}
+          {i.badge > 0 && <span className="warm-surface absolute left-1/2 top-0.5 ml-1 flex size-4 items-center justify-center rounded-full text-[9px] font-bold">{i.badge}</span>}
+        </Link>
+      ))}
+    </nav>
   );
 }
 const footerCols = [

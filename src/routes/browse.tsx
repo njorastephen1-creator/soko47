@@ -80,7 +80,7 @@ function BrowsePage() {
           </div>
         </div>
       )}
-      <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      <div className="mt-8 grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-5">
         {(products || []).map((p) => (<ProductCard key={p.id} product={p} />))}
       </div>
       {(products || []).length === 0 && <p className="mt-10 text-center text-muted-foreground">No products match yet. Try another word or category.</p>}

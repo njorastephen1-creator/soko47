@@ -47,7 +47,7 @@ function ShopPage() {
           <p className="mt-2 text-sm text-muted-foreground">The trader is settling their subscription. Please check back soon.</p>
         </div>
       ) : (
-        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="mt-8 grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-5">
           {(products || []).map((p) => (<ProductCard key={p.id} product={p} />))}
         </div>
       )}

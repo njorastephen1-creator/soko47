@@ -10,6 +10,7 @@ import { useSession } from "@/lib/use-session";
 import { Button } from "@/components/ui/button";
 import { LikeButton } from "@/components/like-button";
 import { FollowButton } from "@/components/follow-button";
+import { Stars, ratingOf } from "@/components/reviews";
 export const Route = createFileRoute("/product/$id")({ component: ProductPage });
 function ProductPage() {
   const { id } = Route.useParams();
@@ -79,7 +80,7 @@ function ProductPage() {
               <span className="flex size-11 items-center justify-center rounded-xl bg-primary text-primary-foreground"><Store className="size-5" /></span>
               <div className="min-w-0 flex-1">
                 <Link to="/shop/$slug" params={{ slug: product.vendors.slug }} className="flex items-center gap-1 font-semibold hover:underline">{product.vendors.shop_name} <BadgeCheck className="size-4 text-accent" /></Link>
-                <p className="text-xs text-muted-foreground">{product.vendors.followers_count ?? 0} followers · verified trader</p>
+                <p className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">{product.vendors.followers_count ?? 0} followers · {ratingOf(product.vendors).count > 0 ? (<><Stars value={ratingOf(product.vendors).avg} /> {ratingOf(product.vendors).count} reviews</>) : ("verified trader")}</p>
               </div>
               <FollowButton vendorId={product.vendors.id} />
             </div>

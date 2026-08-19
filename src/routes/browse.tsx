@@ -22,7 +22,7 @@ function BrowsePage() {
   const { data: products } = useQuery({
     queryKey: ["browse", category, county, q, sub],
     queryFn: async () => {
-      let query = supabase.from("products").select("*, vendors!inner(shop_name, slug, county_slug, market_name, status)").eq("vendors.status", "active").order("created_at", { ascending: false }).limit(60);
+      let query = supabase.from("products").select("*, vendors!inner(shop_name, slug, county_slug, market_name, status, rating_sum, rating_count)").eq("vendors.status", "active").order("created_at", { ascending: false }).limit(60);
       if (category) query = query.eq("category_slug", category);
       if (sub) query = query.eq("subcategory", sub);
       if (county) query = query.eq("vendors.county_slug", county);

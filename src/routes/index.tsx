@@ -54,7 +54,7 @@ function Home() {
   const { data: fresh } = useQuery({
     queryKey: ["fresh"],
     queryFn: async () => {
-      const { data } = await supabase.from("products").select("*, vendors!inner(shop_name, slug, county_slug, market_name, status)").eq("vendors.status", "active").order("featured", { ascending: false }).order("created_at", { ascending: false }).limit(8);
+      const { data } = await supabase.from("products").select("*, vendors!inner(shop_name, slug, county_slug, market_name, status, rating_sum, rating_count)").eq("vendors.status", "active").order("featured", { ascending: false }).order("created_at", { ascending: false }).limit(8);
       return data as ProductRow[];
     },
   });

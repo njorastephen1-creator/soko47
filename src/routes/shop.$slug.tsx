@@ -4,6 +4,7 @@ import { BadgeCheck, MessageCircle, Phone, Store } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getCounty } from "@/data/markets";
 import { FollowButton } from "@/components/follow-button";
+import { ReviewsSection } from "@/components/reviews";
 import { ProductCard, type ProductRow } from "@/components/product-card";
 export const Route = createFileRoute("/shop/$slug")({ component: ShopPage });
 function ShopPage() {
@@ -19,7 +20,7 @@ function ShopPage() {
     queryKey: ["shop-products", shop ? shop.id : ""],
     enabled: !!shop && shop.status === "active",
     queryFn: async () => {
-      const { data } = await supabase.from("products").select("*, vendors(shop_name, slug, county_slug, market_name)").eq("vendor_id", shop!.id).order("created_at", { ascending: false });
+      const { data } = await supabase.from("products").select("*, vendors(shop_name, slug, county_slug, market_name, rating_sum, rating_count)").eq("vendor_id", shop!.id).order("created_at", { ascending: false });
       return data as ProductRow[];
     },
   });
@@ -51,6 +52,7 @@ function ShopPage() {
           {(products || []).map((p) => (<ProductCard key={p.id} product={p} />))}
         </div>
       )}
+      <ReviewsSection vendor={shop} />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { MapPin, Package, Plus } from "lucide-react";
+import { MapPin, Package, Plus, Star } from "lucide-react";
 import { toast } from "sonner";
 import { addToCart, formatKes } from "@/lib/cart";
 import { LikeButton } from "@/components/like-button";
@@ -34,6 +34,7 @@ export function ProductCard({ product }: { product: ProductRow }) {
           <p className="font-display text-sm font-extrabold text-accent-deep">{formatKes(Number(product.price_kes))}</p>
           <p className="mt-0.5 line-clamp-2 text-xs font-medium leading-snug text-foreground">{product.title}</p>
           <p className="mt-1 flex items-center gap-0.5 text-[10px] text-muted-foreground"><MapPin className="size-2.5" /> {product.vendors ? product.vendors.market_name : ""}</p>
+          {product.vendors && Number((product.vendors as any).rating_count) > 0 ? <p className="mt-0.5 flex items-center gap-1 text-[10px] font-semibold text-warning"><Star className="size-2.5 fill-warning text-warning" /> {((Number((product.vendors as any).rating_sum) / Number((product.vendors as any).rating_count)).toFixed(1))} ({(product.vendors as any).rating_count})</p> : null}
         </div>
       </Link>
       <div className="flex items-center justify-between px-1.5 pb-1.5">

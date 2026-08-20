@@ -52,6 +52,23 @@ function EnrichPage() {
     } catch { toast.error("Could not read that video file"); }
     finally { setUploading(false); }
   };
+  const persistImages = async (next: string[]) => {
+    const { error } = await supabase.from("products").update({ image_url: next[0] || null, images: next.slice(1) }).eq("id", id);
+    if (error) { toast.error("Photo save failed: " + error.message); return false; }
+    qc.invalidateQueries();
+    return true;
+  };
+  const addPhoto = async (url: string) => {
+    const next = [...f.images, url];
+    setForm({ ...f, images: next });
+    if (await persistImages(next)) toast.success("Photo saved to listing");
+  };
+  const removePhoto = async (i: number) => {
+    const next = f.images.filter((_: string, x: number) => x !== i);
+    if (next.length === 0) { toast.error("Keep at least one photo"); return; }
+    setForm({ ...f, images: next });
+    if (await persistImages(next)) toast.success("Photo removed");
+  };
   const save = async () => {
     if (!f.images || f.images.length === 0) return toast.error("Keep at least one photo");
     const { error } = await supabase.from("products").update({
@@ -90,14 +107,14 @@ function EnrichPage() {
         <div><Label>Full description</Label><Textarea rows={5} value={f.description} onChange={(e) => setForm({ ...f, description: e.target.value })} placeholder="Tell buyers everything: quality, size, warranty, why it's great..." /></div>
         <div>
           <Label>Product photos (first = cover)</Label>
-          <p className="text-[11px] text-muted-foreground">Add angles, colors, sizes - all photos stay on the one listing.</p>
-          <ImageUpload value="" onChange={(url: string) => setForm({ ...f, images: [...f.images, url] })} />
+          <p className="text-[11px] text-muted-foreground">Photos save instantly as you upload - buyers see them right away.</p>
+          <ImageUpload value="" onChange={addPhoto} />
           <div className="mt-2 flex flex-wrap gap-2">
             {f.images.map((img: string, i: number) => (
               <div key={i} className="relative">
                 <img src={img} alt="" className="size-16 rounded-lg border border-border object-cover" />
                 {i === 0 && <span className="absolute bottom-0 left-0 rounded-tr bg-primary px-1 text-[8px] font-bold text-primary-foreground">MAIN</span>}
-                <button onClick={() => setForm({ ...f, images: f.images.filter((_: string, x: number) => x !== i) })} className="absolute -right-1.5 -top-1.5 rounded-full bg-destructive p-0.5 text-destructive-foreground"><Trash2 className="size-3" /></button>
+                <button onClick={() => removePhoto(i)} className="absolute -right-1.5 -top-1.5 rounded-full bg-destructive p-0.5 text-destructive-foreground"><Trash2 className="size-3" /></button>
               </div>
             ))}
           </div>

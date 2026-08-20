@@ -1,4 +1,25 @@
-import { createFileRoute } from "@tanstack/react-router";
+import fs from 'fs';
+import path from 'path';
+const dirs = ['src/routes', 'src/routes/_authenticated'];
+let target = null;
+let routePath = null;
+for (const d of dirs) {
+  if (!fs.existsSync(d)) continue;
+  for (const f of fs.readdirSync(d)) {
+    if (!f.endsWith('.tsx')) continue;
+    const c = fs.readFileSync(path.join(d, f), 'utf8');
+    if (c.includes('Official sales receipt')) {
+      target = path.join(d, f);
+      const m = c.match(/createFileRoute\("([^"]+)"\)/);
+      routePath = m ? m[1] : null;
+      break;
+    }
+  }
+  if (target) break;
+}
+if (!target || !routePath) { console.log('WARNING: receipt page not found'); process.exit(0); }
+console.log('Found receipt page:', target, routePath);
+fs.writeFileSync(target, `import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Printer, XCircle } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
@@ -7,7 +28,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/use-session";
 import { formatKes } from "@/lib/cart";
 import { Button } from "@/components/ui/button";
-export const Route = createFileRoute("/_authenticated/receipt/$id")({ component: ReceiptPage });
+export const Route = createFileRoute("` + routePath + `")({ component: ReceiptPage });
 function ReceiptPage() {
   const { id } = Route.useParams();
   const { session } = useSession();
@@ -111,3 +132,5 @@ function ReceiptPage() {
     </div>
   );
 }
+`);
+console.log('DONE: receipt with QR + items + cancel');

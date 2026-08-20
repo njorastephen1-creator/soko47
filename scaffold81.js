@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import fs from 'fs';
+fs.writeFileSync('src/routes/_authenticated/orders.tsx', `import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ReceiptText, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -66,3 +67,31 @@ function Orders() {
     </div>
   );
 }
+`);
+console.log('Orders page rebuilt with delete');
+let pay = fs.readFileSync('src/routes/pay.$id.tsx', 'utf8');
+let n = 0;
+if (!pay.includes('paidDone')) {
+  pay = pay.split('import { useQuery } from "@tanstack/react-query";').join('import { useQuery, useQueryClient } from "@tanstack/react-query";');
+  pay = pay.split('  const { id } = Route.useParams();').join('  const { id } = Route.useParams();\n  const qc = useQueryClient();');
+  pay = pay.split('redirect_url: origin + "/orders", host: origin })').join('redirect_url: origin + "/pay/" + id + "?paid=1", host: origin })');
+  pay = pay.split('  }, [groups.length, order]);').join(`  }, [groups.length, order]);
+  const paidDone = useRef(false);
+  useEffect(() => {
+    if (paidDone.current) return;
+    const qs = typeof window !== "undefined" ? window.location.search : "";
+    if (!qs.includes("paid=1") || !order) return;
+    paidDone.current = true;
+    (async () => {
+      await supabase.from("orders").update({ payment_status: "paid" }).eq("id", id);
+      qc.invalidateQueries();
+      toast.success("Payment confirmed - order saved for the trader to deliver");
+    })();
+  }, [order]);`);
+  pay = pay.split('      <div className="mt-6 flex gap-2">').join(`      <Button size="lg" className="mt-6 w-full" onClick={async () => { await supabase.from("orders").update({ payment_status: "paid" }).eq("id", id); qc.invalidateQueries(); toast.success("Noted! The trader now sees your order as PAID"); }}>✅ I have paid - notify the trader</Button>
+      <div className="mt-6 flex gap-2">`);
+  fs.writeFileSync('src/routes/pay.$id.tsx', pay);
+  n++;
+  console.log('Pay hub: auto-paid on return + manual confirm');
+}
+console.log(n > 0 ? 'DONE' : 'WARNING');

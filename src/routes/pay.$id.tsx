@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Copy, ExternalLink, Phone } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/pay/$id")({ component: PayHub });
 function PayHub() {
   const { id } = Route.useParams();
+  const qc = useQueryClient();
   const { data: order } = useQuery({
     queryKey: ["pay-order", id],
     queryFn: async () => {
@@ -51,7 +52,7 @@ function PayHub() {
         const r = await fetch("https://api.intasend.com/api/v1/payment/checkout-link/", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ api_public_key: g.v.intasend_publishable, amount: String(g.total), currency: "KES", api_ref: id.slice(0, 8) + "-" + g.v.id.slice(0, 4), phone_number: order.buyer_phone, first_name: order.buyer_name, last_name: "", email: "buyer@soko47.co.ke", redirect_url: origin + "/orders", host: origin })
+          body: JSON.stringify({ api_public_key: g.v.intasend_publishable, amount: String(g.total), currency: "KES", api_ref: id.slice(0, 8) + "-" + g.v.id.slice(0, 4), phone_number: order.buyer_phone, first_name: order.buyer_name, last_name: "", email: "buyer@soko47.co.ke", redirect_url: origin + "/pay/" + id + "?paid=1", host: origin })
         });
         const d = await r.json().catch(() => ({}));
         const url = d.url || d.checkout_url || d.link;
@@ -59,6 +60,18 @@ function PayHub() {
       } catch { }
     })();
   }, [groups.length, order]);
+  const paidDone = useRef(false);
+  useEffect(() => {
+    if (paidDone.current) return;
+    const qs = typeof window !== "undefined" ? window.location.search : "";
+    if (!qs.includes("paid=1") || !order) return;
+    paidDone.current = true;
+    (async () => {
+      await supabase.from("orders").update({ payment_status: "paid" }).eq("id", id);
+      qc.invalidateQueries();
+      toast.success("Payment confirmed - order saved for the trader to deliver");
+    })();
+  }, [order]);
   if (!order || !items) return <p className="py-16 text-center text-muted-foreground">Loading payment hub...</p>;
   const copy = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
@@ -70,7 +83,7 @@ function PayHub() {
       const r = await fetch("https://api.intasend.com/api/v1/payment/checkout-link/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ api_public_key: g.v.intasend_publishable, amount: String(g.total), currency: "KES", api_ref: id.slice(0, 8) + "-" + g.v.id.slice(0, 4), phone_number: order.buyer_phone, first_name: order.buyer_name, last_name: "", email: "buyer@soko47.co.ke", redirect_url: origin + "/orders", host: origin })
+        body: JSON.stringify({ api_public_key: g.v.intasend_publishable, amount: String(g.total), currency: "KES", api_ref: id.slice(0, 8) + "-" + g.v.id.slice(0, 4), phone_number: order.buyer_phone, first_name: order.buyer_name, last_name: "", email: "buyer@soko47.co.ke", redirect_url: origin + "/pay/" + id + "?paid=1", host: origin })
       });
       const d = await r.json().catch(() => ({}));
       const url = d.url || d.checkout_url || d.link;
@@ -104,6 +117,7 @@ function PayHub() {
           </div>
         ))}
       </div>
+      <Button size="lg" className="mt-6 w-full" onClick={async () => { await supabase.from("orders").update({ payment_status: "paid" }).eq("id", id); qc.invalidateQueries(); toast.success("Noted! The trader now sees your order as PAID"); }}>✅ I have paid - notify the trader</Button>
       <div className="mt-6 flex gap-2">
         <Button asChild variant="outline" className="flex-1"><Link to="/orders">My orders</Link></Button>
         <Button asChild className="flex-1"><Link to="/browse">Continue shopping</Link></Button>

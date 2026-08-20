@@ -8,6 +8,7 @@ import { CATEGORIES, COUNTIES, getCounty } from "@/data/markets";
 import { useCart } from "@/lib/cart";
 import { useSession } from "@/lib/use-session";
 import { isAdminEmail } from "@/lib/admin";
+import { useLive } from "@/lib/live";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 function NotificationsBell() {
@@ -73,6 +74,7 @@ function MobileNav() {
   );
 }
 export function SiteHeader() {
+  useLive();
   const [sc, setSc] = useState("all");
   const [countySlug, setCountySlug] = useState(() => (typeof window !== "undefined" ? localStorage.getItem("soko47_county") || "nairobi" : "nairobi"));
   const [open, setOpen] = useState(false);

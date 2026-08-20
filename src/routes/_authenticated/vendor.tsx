@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { BadgeCheck, Package, Plus, Store, Users } from "lucide-react";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { stkPush, stkStatus } from "@/lib/mpesa";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,6 +41,15 @@ function VendorDashboard() {
     },
   });
   const [payPhone, setPayPhone] = useState("");
+  const [rails, setRails] = useState<any>(null);
+  const rr = rails || (vendor ? { phone: vendor.pay_phone || "", till: vendor.till_number || "", pub: vendor.intasend_publishable || "" } : null);
+  const saveRails = async () => {
+    if (!vendor) return;
+    const { error } = await supabase.from("vendors").update({ pay_phone: rr.phone.trim() || null, till_number: rr.till.trim() || null, intasend_publishable: rr.pub.trim() || null }).eq("id", vendor.id);
+    if (error) return toast.error(error.message);
+    qc.invalidateQueries();
+    toast.success("Payment details saved - customers can now pay YOU directly");
+  };
   const [paying, setPaying] = useState(false);
   const [payMsg, setPayMsg] = useState("");
   const paySubscription = async () => {
@@ -104,7 +114,7 @@ function VendorDashboard() {
   const pendingCount = orderGroups.filter((g: any) => g.status === "pending").length;
   return (
     <div className="mx-auto max-w-6xl px-4 pb-28 pt-8 md:pb-8">
-      {vendor.status === "blocked" ? (
+      {(vendor.status === "blocked" || vendor.status === "suspended") ? (
         <div className="mb-4 rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-sm font-semibold">Your shop is currently blocked - renew your subscription to start selling again.</div>
       ) : null}
       <div className="rounded-3xl border border-border bg-card p-6">
@@ -127,6 +137,25 @@ function VendorDashboard() {
           <div className="rounded-2xl bg-secondary p-3"><Users className="size-4 text-accent-deep" /><p className="mt-1 font-display text-xl font-extrabold">{vendor.followers_count ?? 0}</p><p className="text-xs text-muted-foreground">Followers</p></div>
           <div className="rounded-2xl bg-secondary p-3"><BadgeCheck className="size-4 text-accent-deep" /><p className="mt-1 font-display text-xl font-extrabold capitalize">{(vendor.subscription_plan || "trial").replace("-", " ")}</p><p className="text-xs text-muted-foreground">Plan · {vendor.status}</p></div>
         </div>
+      </div>
+      <div className="mt-6 rounded-3xl border border-accent/40 bg-accent/10 p-6">
+        <h2 className="font-display text-xl font-bold">Subscription - M-Pesa</h2>
+        <p className="mt-1 text-sm text-muted-foreground">KSh 300/month to Soko47 - your shop unlocks the second M-Pesa confirms.</p>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <Input className="w-44" placeholder="M-Pesa phone e.g. 0712..." value={payPhone} onChange={(e) => setPayPhone(e.target.value)} />
+          <Button onClick={paySubscription} disabled={paying}>{paying ? "Waiting for PIN..." : "Pay KSh 300 with M-Pesa"}</Button>
+        </div>
+        {payMsg ? <p className="mt-2 text-xs font-semibold">{payMsg}</p> : null}
+      </div>
+      <div className="mt-6 rounded-3xl border border-border bg-card p-6">
+        <h2 className="font-display text-xl font-bold">Receive payments YOUR way</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Customer money goes straight to YOU - Soko47 never touches it.</p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+          <div><Label>Your M-Pesa number</Label><Input value={rr ? rr.phone : ""} onChange={(e) => setRails({ ...rr, phone: e.target.value })} placeholder="0712..." /></div>
+          <div><Label>Till / Business no. (optional)</Label><Input value={rr ? rr.till : ""} onChange={(e) => setRails({ ...rr, till: e.target.value })} placeholder="e.g. 123456" /></div>
+          <div><Label>Your own IntaSend key (optional)</Label><Input value={rr ? rr.pub : ""} onChange={(e) => setRails({ ...rr, pub: e.target.value })} placeholder="ISPubKey_live_..." /></div>
+        </div>
+        <Button className="mt-3" onClick={saveRails}>Save payment details</Button>
       </div>
       <div className="mt-6 rounded-3xl border border-border bg-card p-6">
         <h2 className="font-display text-xl font-bold">Incoming orders</h2>

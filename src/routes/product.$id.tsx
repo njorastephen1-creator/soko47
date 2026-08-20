@@ -27,7 +27,7 @@ function ProductPage() {
   const { data: product } = useQuery({
     queryKey: ["product", id],
     queryFn: async () => {
-      const { data } = await supabase.from("products").select("*, vendors!inner(id, user_id, shop_name, slug, county_slug, market_name, phone, whatsapp, followers_count, status, rating_sum, rating_count)").eq("id", id).maybeSingle();
+      const { data } = await supabase.from("products").select("*, vendors!inner(id, user_id, shop_name, slug, county_slug, market_name, phone, whatsapp, pay_phone, till_number, followers_count, status, rating_sum, rating_count)").eq("id", id).maybeSingle();
       return data;
     },
   });
@@ -107,6 +107,7 @@ function ProductPage() {
             <div className="mt-3 flex flex-wrap gap-2">
               {product.vendors.phone ? <a href={"tel:" + product.vendors.phone} className="flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-xs hover:bg-secondary"><Phone className="size-3.5" /> Call seller</a> : null}
               {product.vendors.whatsapp ? <a href={"https://wa.me/" + product.vendors.whatsapp} target="_blank" rel="noreferrer" className="flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs text-primary-foreground"><MessageCircle className="size-3.5" /> WhatsApp</a> : null}
+              {product.vendors.pay_phone ? <button onClick={() => { navigator.clipboard.writeText(product.vendors.pay_phone); toast.success("M-Pesa number copied - pay " + product.vendors.shop_name + " directly"); }} className="flex items-center gap-1 rounded-md border border-accent bg-accent/10 px-3 py-1.5 text-xs font-semibold text-accent-deep">💳 M-Pesa: {product.vendors.pay_phone} (tap to copy)</button> : null}
               {isOwner ? <Link to="/enrich/$id" params={{ id: product.id }} className="flex items-center gap-1 rounded-md border border-accent bg-accent/10 px-3 py-1.5 text-xs font-semibold text-accent-deep">Add more info</Link> : null}
             </div>
           </div>

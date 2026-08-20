@@ -1,4 +1,5 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import fs from 'fs';
+fs.writeFileSync('src/components/site-chrome.tsx', `import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell, ChevronDown, Home, MapPin, Menu, Search, ShoppingBasket, ShoppingCart, Store, User, X } from "lucide-react";
@@ -237,3 +238,5 @@ export function SiteFooter() {
     </footer>
   );
 }
+`);
+console.log('DONE: clean header rewrite v2');

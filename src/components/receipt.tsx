@@ -1,4 +1,5 @@
-import { Printer, Share2 } from "lucide-react";
+import { Download, Printer } from "lucide-react";
+import { downloadReceiptPdf } from "@/lib/receipt-pdf";
 import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
 import { formatKes } from "@/lib/cart";
@@ -7,6 +8,20 @@ export function ReceiptView({ receipt }: { receipt: any }) {
   const v = receipt.vendor;
   const shopUrl = typeof window !== "undefined" ? window.location.origin + "/shop/" + v.slug : "";
   const items = (receipt.items as { title: string; price: number; qty: number }[]) || [];
+  const downloadPdf = async () => {
+    toast.info("PDF downloading - share it on WhatsApp");
+    await downloadReceiptPdf({
+      shopName: v.shop_name,
+      marketName: v.market_name,
+      receiptLabel: "Receipt #" + String(receipt.receipt_no).padStart(4, "0"),
+      dateLabel: new Date(receipt.created_at).toLocaleString(),
+      buyerLines: [receipt.customer_name || ""],
+      items: items.map((i) => ({ title: i.title, qty: i.qty, amount: formatKes(i.price * i.qty) })),
+      total: formatKes(Number(receipt.total_kes)),
+      payment: receipt.payment_method,
+      qrValue: shopUrl,
+    });
+  };
   const printHtml = () => {
     const qr = (document.getElementById("qr-wrap") || ({} as any)).innerHTML || "";
     const rows = items.map((i) => "<tr><td>" + i.title + " x" + i.qty + "</td><td style='text-align:right'>" + formatKes(i.price * i.qty) + "</td></tr>").join("");
@@ -57,9 +72,9 @@ export function ReceiptView({ receipt }: { receipt: any }) {
         <p className="mt-2 text-center">Thank you for shopping with us!</p>
         <p className="text-center">Powered by Soko47</p>
       </div>
-      <div className="mt-3 flex gap-2">
-        <Button size="sm" className="flex-1" onClick={printHtml}><Printer className="size-4" /> Print</Button>
-        <Button size="sm" variant="outline" className="flex-1" onClick={() => { toast.info("In the print dialog choose 'Save as PDF' to share"); printHtml(); }}><Share2 className="size-4" /> Share PDF</Button>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <Button size="sm" className="flex-1" onClick={downloadPdf}><Download className="size-4" /> Download PDF</Button>
+        <Button size="sm" variant="outline" className="flex-1" onClick={printHtml}><Printer className="size-4" /> Print</Button>
       </div>
     </div>
   );

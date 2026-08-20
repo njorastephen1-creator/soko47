@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Printer, XCircle } from "lucide-react";
+import { Download, Printer, XCircle } from "lucide-react";
+import { downloadReceiptPdf } from "@/lib/receipt-pdf";
 import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,6 +50,19 @@ function ReceiptPage() {
     qc.invalidateQueries();
     toast.success("Order cancelled - the trader has been notified");
   };
+  const downloadPdf = async () => {
+    await downloadReceiptPdf({
+      shopName: vendor ? vendor.shop_name : "Soko47",
+      marketName: vendor ? vendor.market_name : "Official sales receipt",
+      receiptLabel: "Receipt #" + id.slice(0, 8),
+      dateLabel: new Date(order.created_at).toLocaleString(),
+      buyerLines: [order.buyer_name, order.buyer_phone, order.delivery_location || ""],
+      items: (items || []).map((i: any) => ({ title: i.title, qty: i.quantity, amount: formatKes(Number(i.unit_price_kes) * i.quantity) })),
+      total: formatKes(total || Number(order.total_kes)),
+      status: order.status,
+      qrValue: shopUrl || "https://soko47-kenya.vercel.app",
+    });
+  };
   const printHtml = () => {
     const qr = (document.getElementById("qr-wrap") || ({} as any)).innerHTML || "";
     const rows = (items || []).map((i: any) => "<tr><td>" + i.title + " x" + i.quantity + "</td><td style='text-align:right'>" + formatKes(Number(i.unit_price_kes) * i.quantity) + "</td></tr>").join("");
@@ -76,8 +90,9 @@ function ReceiptPage() {
   };
   return (
     <div className="mx-auto max-w-2xl px-4 pb-28 pt-8 md:pb-8">
-      <div className="flex justify-end">
-        <Button onClick={printHtml}><Printer className="size-4" /> Print / Save as PDF</Button>
+      <div className="flex flex-wrap justify-end gap-2">
+        <Button variant="outline" onClick={downloadPdf}><Download className="size-4" /> Download PDF</Button>
+        <Button onClick={printHtml}><Printer className="size-4" /> Print</Button>
       </div>
       <div id="receipt-area" className="mt-4 rounded-3xl border border-border bg-card p-6">
         <div className="flex items-start justify-between gap-3">

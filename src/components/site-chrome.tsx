@@ -9,6 +9,7 @@ import { useCart } from "@/lib/cart";
 import { useSession } from "@/lib/use-session";
 import { isAdminEmail } from "@/lib/admin";
 import { useLive } from "@/lib/live";
+import { HomeAds } from "@/components/home-ads";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 function NotificationsBell() {
@@ -160,7 +161,7 @@ export function SiteHeader() {
             <Link to="/sell" className="whitespace-nowrap font-semibold text-accent hover:underline">Open a shop</Link>
           </div>
         </nav>
-      </header>
+      {typeof window !== "undefined" && window.location.pathname === "/" ? <HomeAds /> : null}</header>
       {open && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div className="absolute inset-0 bg-black/50" onClick={() => setOpen(false)} />

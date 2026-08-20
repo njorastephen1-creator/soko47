@@ -52,12 +52,12 @@ function VendorDashboard() {
   };
   const [paying, setPaying] = useState(false);
   const [payMsg, setPayMsg] = useState("");
-  const paySubscription = async () => {
+  const paySubscription = async (amount: number, plan: string) => {
     if (!payPhone.trim()) return toast.error("Enter your M-Pesa phone number");
     setPaying(true);
     setPayMsg("Sending STK prompt - check your phone...");
     try {
-      const d = await stkPush(payPhone.trim(), 300, "SUB-" + (vendor ? vendor.id.slice(0, 8) : "new"), vendor ? vendor.shop_name : "Soko47");
+      const d = await stkPush(payPhone.trim(), amount, "SUB-" + (vendor ? vendor.id.slice(0, 8) : "new"), vendor ? vendor.shop_name : "Soko47");
       const invoice = d.invoice_id || d.id || (d.invoice && d.invoice.invoice_id);
       if (!invoice) throw new Error(d.error || "No invoice from IntaSend");
       setPayMsg("Prompt sent - enter your M-Pesa PIN, then wait...");
@@ -68,7 +68,7 @@ function VendorDashboard() {
         if (["complete", "completed", "paid", "success"].includes(state)) {
           const exp = new Date(Date.now() + 30 * 864e5).toISOString();
           if (vendor) {
-            await supabase.from("vendors").update({ subscription_plan: "monthly", subscription_expires_at: exp, status: "active" }).eq("id", vendor.id);
+            await supabase.from("vendors").update({ subscription_plan: plan, subscription_expires_at: exp, status: "active" }).eq("id", vendor.id);
             qc.invalidateQueries();
           }
           toast.success("Payment received - shop unlocked for 30 days!");
@@ -129,6 +129,7 @@ function VendorDashboard() {
             <Button asChild variant="outline" size="sm"><Link to="/shop/$slug" params={{ slug: vendor.slug }}>View shop</Link></Button>
             <Button asChild variant="outline" size="sm"><Link to="/sell"><Plus className="size-4" /> Add product</Link></Button>
             <Button asChild size="sm"><Link to="/pos">POS & Receipts</Link></Button>
+            {vendor.subscription_plan === "pro" ? <Button asChild size="sm" variant="outline"><Link to="/pro">Pro Studio</Link></Button> : null}
           </div>
         </div>
         <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -140,10 +141,11 @@ function VendorDashboard() {
       </div>
       <div className="mt-6 rounded-3xl border border-accent/40 bg-accent/10 p-6">
         <h2 className="font-display text-xl font-bold">Subscription - M-Pesa</h2>
-        <p className="mt-1 text-sm text-muted-foreground">KSh 300/month to Soko47 - your shop unlocks the second M-Pesa confirms.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Starter KSh 499 (25 products) · Pro KSh 999 (unlimited + homepage ads + analytics). Unlocks the second M-Pesa confirms.</p>
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <Input className="w-44" placeholder="M-Pesa phone e.g. 0712..." value={payPhone} onChange={(e) => setPayPhone(e.target.value)} />
-          <Button onClick={paySubscription} disabled={paying}>{paying ? "Waiting for PIN..." : "Pay KSh 300 with M-Pesa"}</Button>
+          <Button variant="outline" onClick={() => paySubscription(499, "starter")} disabled={paying}>{paying ? "Waiting..." : "Starter · KSh 499/mo"}</Button>
+          <Button onClick={() => paySubscription(999, "pro")} disabled={paying}>{paying ? "Waiting..." : "Pro · KSh 999/mo"}</Button>
         </div>
         {payMsg ? <p className="mt-2 text-xs font-semibold">{payMsg}</p> : null}
       </div>

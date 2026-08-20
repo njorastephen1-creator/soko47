@@ -25,7 +25,7 @@ function EnrichPage() {
   });
   const [form, setForm] = useState<any>(null);
   const [uploading, setUploading] = useState(false);
-  const f = form || (product ? { condition: product.condition || "new", brand: product.brand || "", model: product.model || "", description: product.description || "", images: (product.images as string[]) || [], specs: (product.specs as any[]) || [], video_url: product.video_url || "", highlights: (product.highlights as string[]) || [], faqs: (product.faqs as any[]) || [] } : null);
+  const f = form || (product ? { condition: product.condition || "new", brand: product.brand || "", model: product.model || "", description: product.description || "", images: ([product.image_url].concat((product.images as string[]) || [])).filter(Boolean), specs: (product.specs as any[]) || [], video_url: product.video_url || "", highlights: (product.highlights as string[]) || [], faqs: (product.faqs as any[]) || [] } : null);
   if (!product || !f) return <p className="py-16 text-center text-muted-foreground">Loading...</p>;
   if (product.vendors && session && product.vendors.user_id !== session.user.id) return <p className="py-16 text-center text-muted-foreground">Only the shop owner can edit this listing.</p>;
   const pickVideo = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -53,12 +53,14 @@ function EnrichPage() {
     finally { setUploading(false); }
   };
   const save = async () => {
+    if (!f.images || f.images.length === 0) return toast.error("Keep at least one photo");
     const { error } = await supabase.from("products").update({
       condition: f.condition,
       brand: f.brand.trim() || null,
       model: f.model.trim() || null,
       description: f.description,
-      images: f.images,
+      image_url: f.images[0] || null,
+      images: f.images.slice(1),
       specs: f.specs.filter((s: any) => s.label && s.value),
       video_url: f.video_url.trim() || null,
       highlights: f.highlights.filter((h: string) => h.trim()),
@@ -87,12 +89,14 @@ function EnrichPage() {
         </div>
         <div><Label>Full description</Label><Textarea rows={5} value={f.description} onChange={(e) => setForm({ ...f, description: e.target.value })} placeholder="Tell buyers everything: quality, size, warranty, why it's great..." /></div>
         <div>
-          <Label>Extra photos</Label>
+          <Label>Product photos (first = cover)</Label>
+          <p className="text-[11px] text-muted-foreground">Add angles, colors, sizes - all photos stay on the one listing.</p>
           <ImageUpload value="" onChange={(url: string) => setForm({ ...f, images: [...f.images, url] })} />
           <div className="mt-2 flex flex-wrap gap-2">
             {f.images.map((img: string, i: number) => (
               <div key={i} className="relative">
                 <img src={img} alt="" className="size-16 rounded-lg border border-border object-cover" />
+                {i === 0 && <span className="absolute bottom-0 left-0 rounded-tr bg-primary px-1 text-[8px] font-bold text-primary-foreground">MAIN</span>}
                 <button onClick={() => setForm({ ...f, images: f.images.filter((_: string, x: number) => x !== i) })} className="absolute -right-1.5 -top-1.5 rounded-full bg-destructive p-0.5 text-destructive-foreground"><Trash2 className="size-3" /></button>
               </div>
             ))}
@@ -127,8 +131,8 @@ function EnrichPage() {
           <div className="mt-2 space-y-2">
             {f.specs.map((s: any, i: number) => (
               <div key={i} className="flex gap-2">
-                <Input value={s.label} onChange={(e) => setForm({ ...f, specs: f.specs.map((x: any, xi: number) => (xi === i ? { ...x, label: e.target.value } : x)) })} placeholder="e.g. RAM" />
-                <Input value={s.value} onChange={(e) => setForm({ ...f, specs: f.specs.map((x: any, xi: number) => (xi === i ? { ...x, value: e.target.value } : x)) })} placeholder="e.g. 8GB" />
+                <Input value={s.label} onChange={(e) => setForm({ ...f, specs: f.specs.map((x: any, xi: number) => (xi === i ? { ...x, label: e.target.value } : x)) })} placeholder="What is it? e.g. Material / Size / RAM" />
+                <Input value={s.value} onChange={(e) => setForm({ ...f, specs: f.specs.map((x: any, xi: number) => (xi === i ? { ...x, value: e.target.value } : x)) })} placeholder="The detail e.g. Cotton / Large / 8GB" />
                 <Button variant="ghost" size="sm" onClick={() => setForm({ ...f, specs: f.specs.filter((_: any, xi: number) => xi !== i) })}><Trash2 className="size-4" /></Button>
               </div>
             ))}

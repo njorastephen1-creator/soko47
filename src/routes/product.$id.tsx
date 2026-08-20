@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { BadgeCheck, ChevronRight, MapPin, MessageCircle, Minus, Phone, Plus, ShieldCheck, ShoppingBasket, Store, Truck } from "lucide-react";
+import { BadgeCheck, ChevronRight, MapPin, MessageCircle, Minus, Phone, Play, Plus, ShieldCheck, ShoppingBasket, Store, Truck } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +22,8 @@ function ProductPage() {
   const { session } = useSession();
   const [qty, setQty] = useState(1);
   const [img, setImg] = useState(0);
+  const [showVideo, setShowVideo] = useState(false);
+  const [showDesc, setShowDesc] = useState(false);
   const { data: product } = useQuery({
     queryKey: ["product", id],
     queryFn: async () => {
@@ -116,10 +118,15 @@ function ProductPage() {
       </div>
       {product.video_url ? (
         <div className="mt-10">
-          <h2 className="font-display text-xl font-bold">Product video</h2>
-          <div className="mt-3 overflow-hidden rounded-3xl border border-border bg-black">
-            {yid ? <iframe className="aspect-video w-full" src={"https://www.youtube.com/embed/" + yid} title="Product video" allowFullScreen /> : <video controls className="aspect-video w-full" src={product.video_url} />}
-          </div>
+          {!showVideo ? (
+            <button onClick={() => setShowVideo(true)} className="flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
+              <Play className="size-4" /> Watch product video
+            </button>
+          ) : (
+            <div className="overflow-hidden rounded-3xl border border-border bg-black">
+              {yid ? <iframe className="aspect-video w-full" src={"https://www.youtube.com/embed/" + yid} title="Product video" allowFullScreen /> : <video controls className="aspect-video w-full" src={product.video_url} />}
+            </div>
+          )}
         </div>
       ) : null}
       <div className="mt-10 grid gap-6 lg:grid-cols-2">
@@ -130,7 +137,16 @@ function ProductPage() {
               {highlights.map((h, i) => (<li key={i}>{h}</li>))}
             </ul>
           ) : null}
-          <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">{product.description || "The trader has not added a description yet."}</p>
+          {product.description ? (
+            <>
+              <p className={"mt-4 whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground " + (showDesc ? "" : "line-clamp-4")}>{product.description}</p>
+              {product.description.length > 180 ? (
+                <button onClick={() => setShowDesc(!showDesc)} className="mt-2 text-xs font-semibold text-accent-deep hover:underline">{showDesc ? "Show less" : "Show more"}</button>
+              ) : null}
+            </>
+          ) : (
+            <p className="mt-4 text-sm text-muted-foreground">The trader has not added a description yet.</p>
+          )}
         </div>
         <div className="rounded-3xl border border-border bg-card p-6">
           <h2 className="font-display text-xl font-bold">Key details</h2>

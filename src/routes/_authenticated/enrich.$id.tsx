@@ -24,10 +24,10 @@ function EnrichPage() {
     },
   });
   const [form, setForm] = useState<any>(null);
+  const [uploading, setUploading] = useState(false);
   const f = form || (product ? { condition: product.condition || "new", brand: product.brand || "", model: product.model || "", description: product.description || "", images: (product.images as string[]) || [], specs: (product.specs as any[]) || [], video_url: product.video_url || "", highlights: (product.highlights as string[]) || [], faqs: (product.faqs as any[]) || [] } : null);
   if (!product || !f) return <p className="py-16 text-center text-muted-foreground">Loading...</p>;
   if (product.vendors && session && product.vendors.user_id !== session.user.id) return <p className="py-16 text-center text-muted-foreground">Only the shop owner can edit this listing.</p>;
-  const [uploading, setUploading] = useState(false);
   const pickVideo = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;

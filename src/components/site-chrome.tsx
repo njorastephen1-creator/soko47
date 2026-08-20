@@ -82,7 +82,7 @@ export function SiteHeader() {
   const navigate = useNavigate();
   const county = getCounty(countySlug);
   const isAdmin = isAdminEmail(session ? session.user.email : "");
-  const fullName = (session ? (session.user_metadata.full_name as string) : "") || (session ? session.user.email : "").split("@")[0] || "trader";
+  const fullName = (session && session.user_metadata ? (session.user_metadata.full_name as string) : "") || (session && session.user.email ? session.user.email.split("@")[0] : "") || "trader";
   const { data: myVendor } = useQuery({
     queryKey: ["my-vendor", session ? session.user.id : "anon"],
     enabled: !!session,

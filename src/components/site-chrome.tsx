@@ -58,7 +58,7 @@ export function SiteHeader() {
             {COUNTIES.map((c) => (<DropdownMenuItem key={c.slug} onClick={() => pickCounty(c.slug)}>{c.county}</DropdownMenuItem>))}
           </DropdownMenuContent>
         </DropdownMenu>
-        <form onSubmit={submit} className="hidden md:flex order-last flex w-full min-w-0 flex-1 overflow-hidden rounded-lg bg-card md:order-none md:w-auto">
+        <form onSubmit={submit} className="order-last flex w-full min-w-0 flex-1 overflow-hidden rounded-lg bg-card md:order-none md:w-auto">
           <select value={cat} onChange={(e) => setCat(e.target.value)} className="hidden max-w-40 border-r border-border bg-secondary px-2 text-xs text-foreground sm:block">
             <option value="">All</option>
             {CATEGORIES.map((c) => (<option key={c.slug} value={c.slug}>{c.name}</option>))}
@@ -70,7 +70,7 @@ export function SiteHeader() {
           <NotificationsBell />
           {session ? (
             <DropdownMenu>
-              <DropdownMenuTrigger className="rounded-md px-2 py-1 text-left hover:bg-primary">
+              <DropdownMenuTrigger className="hidden rounded-md px-2 py-1 text-left hover:bg-primary md:block">
                 <span className="block text-[10px] opacity-80">Hello, {fullName}</span>
                 <span className="block text-sm font-semibold">{role} · Account & Lists <ChevronDown className="inline size-3" /></span>
               </DropdownMenuTrigger>
@@ -109,13 +109,7 @@ export function SiteHeader() {
           </DropdownMenu>
         </div>
       </div>
-      <div className="border-t border-black/10 bg-primary px-4 py-2 md:hidden">
-        <form onSubmit={submit} className="flex overflow-hidden rounded-lg bg-white">
-          <input value={term} onChange={(e) => setCat(e.target.value)} placeholder="Search sufuria, sofa, tomatoes..." className="min-w-0 flex-1 px-3 py-2 text-sm text-foreground outline-none" />
-          <button className="bg-accent px-4" aria-label="Search"><Search className="size-4 text-foreground" /></button>
-        </form>
-      </div>
-      {/* md:hidden search row */}{/* topsearch-mobile-hidden */}
+      {/* topsearch-mobile-hidden */}
 <nav className="border-t border-primary-foreground/10 bg-primary">
         <div className="mx-auto flex max-w-7xl items-center gap-1 overflow-x-auto px-4 py-1.5 text-sm">
           <Link to="/browse" className="whitespace-nowrap rounded-md px-2.5 py-1 hover:bg-primary-dark">All goods</Link>

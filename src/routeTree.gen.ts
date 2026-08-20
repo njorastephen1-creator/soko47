@@ -25,6 +25,7 @@ import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedVendorRouteImport } from './routes/_authenticated/vendor'
 import { Route as MarketsIndexRouteImport } from './routes/markets.index'
 import { Route as MarketsCountyRouteImport } from './routes/markets.$county'
+import { Route as PayIdRouteImport } from './routes/pay.$id'
 import { Route as ProductIdRouteImport } from './routes/product.$id'
 import { Route as ShopSlugRouteImport } from './routes/shop.$slug'
 import { Route as AuthenticatedEnrichIdRouteImport } from './routes/_authenticated/enrich.$id'
@@ -109,6 +110,11 @@ const MarketsCountyRoute = MarketsCountyRouteImport.update({
   path: '/markets/$county',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PayIdRoute = PayIdRouteImport.update({
+  id: '/pay/$id',
+  path: '/pay/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProductIdRoute = ProductIdRouteImport.update({
   id: '/product/$id',
   path: '/product/$id',
@@ -145,6 +151,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/vendor': typeof AuthenticatedVendorRoute
   '/markets/$county': typeof MarketsCountyRoute
+  '/pay/$id': typeof PayIdRoute
   '/product/$id': typeof ProductIdRoute
   '/shop/$slug': typeof ShopSlugRoute
   '/markets/': typeof MarketsIndexRoute
@@ -166,6 +173,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsRoute
   '/vendor': typeof AuthenticatedVendorRoute
   '/markets/$county': typeof MarketsCountyRoute
+  '/pay/$id': typeof PayIdRoute
   '/product/$id': typeof ProductIdRoute
   '/shop/$slug': typeof ShopSlugRoute
   '/markets': typeof MarketsIndexRoute
@@ -189,6 +197,7 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/vendor': typeof AuthenticatedVendorRoute
   '/markets/$county': typeof MarketsCountyRoute
+  '/pay/$id': typeof PayIdRoute
   '/product/$id': typeof ProductIdRoute
   '/shop/$slug': typeof ShopSlugRoute
   '/markets/': typeof MarketsIndexRoute
@@ -212,6 +221,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/vendor'
     | '/markets/$county'
+    | '/pay/$id'
     | '/product/$id'
     | '/shop/$slug'
     | '/markets/'
@@ -233,6 +243,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/vendor'
     | '/markets/$county'
+    | '/pay/$id'
     | '/product/$id'
     | '/shop/$slug'
     | '/markets'
@@ -255,6 +266,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/_authenticated/vendor'
     | '/markets/$county'
+    | '/pay/$id'
     | '/product/$id'
     | '/shop/$slug'
     | '/markets/'
@@ -271,6 +283,7 @@ export interface RootRouteChildren {
   CheckoutRoute: typeof CheckoutRoute
   SellRoute: typeof SellRoute
   MarketsCountyRoute: typeof MarketsCountyRoute
+  PayIdRoute: typeof PayIdRoute
   ProductIdRoute: typeof ProductIdRoute
   ShopSlugRoute: typeof ShopSlugRoute
   MarketsIndexRoute: typeof MarketsIndexRoute
@@ -390,6 +403,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MarketsCountyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pay/$id': {
+      id: '/pay/$id'
+      path: '/pay/$id'
+      fullPath: '/pay/$id'
+      preLoaderRoute: typeof PayIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/product/$id': {
       id: '/product/$id'
       path: '/product/$id'
@@ -457,6 +477,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutRoute: CheckoutRoute,
   SellRoute: SellRoute,
   MarketsCountyRoute: MarketsCountyRoute,
+  PayIdRoute: PayIdRoute,
   ProductIdRoute: ProductIdRoute,
   ShopSlugRoute: ShopSlugRoute,
   MarketsIndexRoute: MarketsIndexRoute,

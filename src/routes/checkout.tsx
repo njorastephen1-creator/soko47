@@ -29,7 +29,7 @@ function Checkout() {
     if (itemsError) { toast.error(itemsError.message); return; }
     clearCart();
     toast.success("Order placed — the traders will contact you shortly");
-    navigate({ to: "/orders" });
+    navigate({ to: "/pay/$id", params: { id: order.id } });
   };
   if (items.length === 0)
     return (

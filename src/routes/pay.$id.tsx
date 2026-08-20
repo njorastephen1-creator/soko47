@@ -6,6 +6,9 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { formatKes } from "@/lib/cart";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { stkPush, stkStatus } from "@/lib/mpesa";
 export const Route = createFileRoute("/pay/$id")({ component: PayHub });
 function PayHub() {
   const { id } = Route.useParams();
@@ -39,6 +42,10 @@ function PayHub() {
     return { v, lines, total: gtotal };
   });
   const [busy, setBusy] = useState<string | null>(null);
+  const [mpesaPhone, setMpesaPhone] = useState("");
+  useEffect(() => {
+    if (order && !mpesaPhone) setMpesaPhone(order.buyer_phone || "");
+  }, [order]);
   const doPayout = async (g: any) => {
     const gross = Math.round(g.total);
     const net = Math.round(gross * 0.99);
@@ -50,9 +57,10 @@ function PayHub() {
     toast.success("Trader paid " + formatKes(net) + " instantly (1% platform fee earned)");
   };
   const payGroup = async (g: any) => {
+    if (mpesaPhone.replace(/[^0-9]/g, "").length < 10) { toast.error("Enter a valid M-Pesa number to receive the prompt"); return; }
     setBusy(g.v.id);
     try {
-      const d = await stkPush(order.buyer_phone, g.total, "S47-" + id.slice(0, 8) + "-" + g.v.id.slice(0, 8), order.buyer_name);
+      const d = await stkPush(mpesaPhone.trim() || order.buyer_phone, g.total, "S47-" + id.slice(0, 8) + "-" + g.v.id.slice(0, 8), order.buyer_name);
       const invoice = d.invoice_id || d.id;
       if (!invoice) throw new Error(d.error || "No invoice");
       toast.info("M-Pesa prompt sent - enter your PIN");
@@ -78,13 +86,13 @@ function PayHub() {
   };
   const fired47 = useRef(false);
   useEffect(() => {
-    if (fired47.current || !groups.length || !order) return;
+    if (fired47.current || !groups.length || !order || mpesaPhone.replace(/[^0-9]/g, "").length < 10) return;
     const g47 = groups.filter((g: any) => g.v.soko47_pay && g.v.pay_phone);
     if (g47.length !== 1) return;
     fired47.current = true;
     toast.info("Soko47 Pay: sending prompt for " + g47[0].v.shop_name + "...");
     payGroup(g47[0]);
-  }, [groups.length, order]);
+  }, [groups.length, order, mpesaPhone]);
   const fired = useRef(false);
   useEffect(() => {
     if (fired.current || !groups.length || !order) return;
@@ -144,6 +152,11 @@ function PayHub() {
     <div className="mx-auto max-w-2xl px-4 pb-28 pt-8 md:pb-8">
       <h1 className="font-display text-3xl font-bold">Pay your traders</h1>
       <p className="mt-1 text-sm text-muted-foreground">Money goes straight to each trader - Soko47 never touches it. Order for {order.buyer_name} · {order.buyer_phone}</p>
+      <div className="mt-4 rounded-2xl border border-accent/40 bg-accent/10 p-4">
+        <Label>📲 M-Pesa number to receive the prompt</Label>
+        <Input className="mt-2" value={mpesaPhone} onChange={(e) => setMpesaPhone(e.target.value)} placeholder="07XX XXX XXX" />
+        <p className="mt-1 text-xs text-muted-foreground">The prompt will pop on this phone - edit if it is not your M-Pesa number.</p>
+      </div>
       <div className="mt-6 space-y-4">
         {groups.map((g: any) => (
           <div key={g.v.id} className="rounded-3xl border border-border bg-card p-5">

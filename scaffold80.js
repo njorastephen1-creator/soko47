@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import fs from 'fs';
+fs.writeFileSync('src/routes/pay.$id.tsx', `import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Copy, ExternalLink, Phone } from "lucide-react";
 import { useEffect, useRef } from "react";
@@ -111,3 +112,5 @@ function PayHub() {
     </div>
   );
 }
+`);
+console.log('DONE: pay hub rebuilt with correct hook order');

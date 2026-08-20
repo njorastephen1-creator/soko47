@@ -1,6 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { BadgeCheck, Package, Plus, Store, Users } from "lucide-react";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { stkPush, stkStatus } from "@/lib/mpesa";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/use-session";
@@ -36,6 +39,41 @@ function VendorDashboard() {
       return data || [];
     },
   });
+  const [payPhone, setPayPhone] = useState("");
+  const [paying, setPaying] = useState(false);
+  const [payMsg, setPayMsg] = useState("");
+  const paySubscription = async () => {
+    if (!payPhone.trim()) return toast.error("Enter your M-Pesa phone number");
+    setPaying(true);
+    setPayMsg("Sending STK prompt - check your phone...");
+    try {
+      const d = await stkPush(payPhone.trim(), 300, "SUB-" + (vendor ? vendor.id.slice(0, 8) : "new"), vendor ? vendor.shop_name : "Soko47");
+      const invoice = d.invoice_id || d.id || (d.invoice && d.invoice.invoice_id);
+      if (!invoice) throw new Error(d.error || "No invoice from IntaSend");
+      setPayMsg("Prompt sent - enter your M-Pesa PIN, then wait...");
+      for (let i = 0; i < 30; i++) {
+        await new Promise((r2) => setTimeout(r2, 4000));
+        const s = await stkStatus(invoice);
+        const state = String((s.invoice && s.invoice.state) || s.state || s.status || "").toLowerCase();
+        if (["complete", "completed", "paid", "success"].includes(state)) {
+          const exp = new Date(Date.now() + 30 * 864e5).toISOString();
+          if (vendor) {
+            await supabase.from("vendors").update({ subscription_plan: "monthly", subscription_expires_at: exp, status: "active" }).eq("id", vendor.id);
+            qc.invalidateQueries();
+          }
+          toast.success("Payment received - shop unlocked for 30 days!");
+          setPayMsg("PAID - asante for supporting Soko47!");
+          setPaying(false);
+          return;
+        }
+        if (["failed", "cancelled", "canceled"].includes(state)) throw new Error("Payment " + state);
+      }
+      setPayMsg("Still pending - check your M-Pesa messages.");
+    } catch (e: any) {
+      toast.error(String(e.message || e));
+      setPayMsg("");
+    } finally { setPaying(false); }
+  };
   if (!vendor) return (
     <div className="mx-auto max-w-md px-4 py-16 text-center">
       <Store className="mx-auto size-12 text-accent" />

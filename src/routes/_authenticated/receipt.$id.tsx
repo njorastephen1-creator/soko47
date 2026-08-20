@@ -37,6 +37,7 @@ function ReceiptPage() {
   if (!order) return <p className="py-16 text-center text-muted-foreground">Loading receipt...</p>;
   const total = (items || []).reduce((s: number, i: any) => s + Number(i.unit_price_kes) * i.quantity, 0);
   const shopUrl = typeof window !== "undefined" && vendor ? window.location.origin + "/shop/" + vendor.slug : "";
+  const canCancel = order.status === "pending" && Date.now() - new Date(order.created_at).getTime() < 10 * 60 * 1000;
   const cancel = async () => {
     const { error } = await supabase.from("orders").update({ status: "cancelled" }).eq("id", id);
     if (error) return toast.error(error.message);
@@ -102,11 +103,18 @@ function ReceiptPage() {
         <p className="mt-4 text-center text-xs text-muted-foreground">Asante kwa kununua kupitia Soko47 - built for Kenya's market traders.</p>
       </div>
       {order.status === "pending" ? (
-        <div className="mt-4 rounded-2xl border border-warning/40 bg-warning/10 p-4 text-sm">
-          <p className="font-semibold">Ordered by mistake?</p>
-          <p className="mt-1 text-muted-foreground">You can cancel while the order is pending - the trader is notified instantly.</p>
-          <Button variant="destructive" size="sm" className="mt-2" onClick={cancel}><XCircle className="size-4" /> Cancel this order</Button>
-        </div>
+        canCancel ? (
+          <div className="mt-4 rounded-2xl border border-warning/40 bg-warning/10 p-4 text-sm">
+            <p className="font-semibold">Ordered by mistake?</p>
+            <p className="mt-1 text-muted-foreground">You have 10 minutes to cancel - after that the trader starts preparing your order.</p>
+            <Button variant="destructive" size="sm" className="mt-2" onClick={cancel}><XCircle className="size-4" /> Cancel this order</Button>
+          </div>
+        ) : (
+          <div className="mt-4 rounded-2xl border border-border bg-card p-4 text-sm">
+            <p className="font-semibold">🔒 Order locked in</p>
+            <p className="mt-1 text-muted-foreground">The trader is already preparing your goods - asante for shopping local! 🇰</p>
+          </div>
+        )
       ) : null}
     </div>
   );

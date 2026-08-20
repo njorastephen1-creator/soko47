@@ -86,14 +86,14 @@ function Home() {
       </section>
       <section className="mx-auto max-w-7xl px-4 py-4">
         <h2 className="font-display text-2xl font-bold">Fresh listings</h2>
-        {CATEGORIES.filter((c) => fresh.some((p) => p.category_slug === c.slug)).map((c) => (
+        {CATEGORIES.filter((c) => (fresh || []).some((p) => p.category_slug === c.slug)).map((c) => (
           <div key={c.slug} className="mt-6">
             <div className="flex items-center justify-between">
               <h3 className="font-display text-lg font-bold">{c.name}</h3>
               <Link to="/browse" search={{ category: c.slug }} className="text-xs font-medium text-accent-deep hover:underline">View all</Link>
             </div>
             <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-5">
-              {fresh.filter((p) => p.category_slug === c.slug).slice(0, 6).map((p) => (<ProductCard key={p.id} product={p} />))}
+              {(fresh || []).filter((p) => p.category_slug === c.slug).slice(0, 6).map((p) => (<ProductCard key={p.id} product={p} />))}
             </div>
           </div>
         ))}

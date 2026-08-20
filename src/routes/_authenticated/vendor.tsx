@@ -141,7 +141,7 @@ function VendorDashboard() {
       </div>
       <div className="mt-6 rounded-3xl border border-accent/40 bg-accent/10 p-6">
         <h2 className="font-display text-xl font-bold">Subscription - M-Pesa</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Starter KSh 499 (25 products) · Pro KSh 999 (unlimited + homepage ads + analytics). Unlocks the second M-Pesa confirms.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Starter KSh 499 (100 products) · Pro KSh 999 (unlimited + homepage ads + analytics). Unlocks the second M-Pesa confirms.</p>
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <Input className="w-44" placeholder="M-Pesa phone e.g. 0712..." value={payPhone} onChange={(e) => setPayPhone(e.target.value)} />
           <Button variant="outline" onClick={() => paySubscription(499, "starter")} disabled={paying}>{paying ? "Waiting..." : "Starter · KSh 499/mo"}</Button>

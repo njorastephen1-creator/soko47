@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Copy, ExternalLink, Phone } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { formatKes } from "@/lib/cart";
@@ -37,6 +38,29 @@ function PayHub() {
     const gtotal = lines.reduce((s: number, i: any) => s + Number(i.unit_price_kes) * i.quantity, 0);
     return { v, lines, total: gtotal };
   });
+  const fired = useRef(false);
+  useEffect(() => {
+    // auto-fired: buyer gets the trader's M-Pesa prompt without tapping anything
+    if (fired.current || !groups.length) return;
+    const connected = groups.filter((g: any) => g.v.intasend_publishable);
+    if (connected.length !== 1) return;
+    fired.current = true;
+    const g = connected[0];
+    toast.info("Connecting you to " + g.v.shop_name + "'s secure M-Pesa...");
+    (async () => {
+      try {
+        const origin = typeof window !== "undefined" ? window.location.origin : "";
+        const r = await fetch("https://api.intasend.com/api/v1/payment/checkout-link/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ api_public_key: g.v.intasend_publishable, amount: String(g.total), currency: "KES", api_ref: id.slice(0, 8) + "-" + g.v.id.slice(0, 4), phone_number: order.buyer_phone, first_name: order.buyer_name, last_name: "", email: "buyer@soko47.co.ke", redirect_url: origin + "/orders", host: origin })
+        });
+        const d = await r.json().catch(() => ({}));
+        const url = d.url || d.checkout_url || d.link;
+        if (url) setTimeout(() => { window.location.href = url; }, 1200);
+      } catch { }
+    })();
+  }, [groups.length]);
   const copy = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast.success(label + " copied - pay via M-Pesa app");

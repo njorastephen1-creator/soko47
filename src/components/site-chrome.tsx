@@ -72,7 +72,7 @@ function MobileNav() {
     </nav>
   );
 }
-export function Header() {
+export function SiteHeader() {
   const [q, setQ] = useState("");
   const [sc, setSc] = useState("all");
   const [countySlug, setCountySlug] = useState(() => (typeof window !== "undefined" ? localStorage.getItem("soko47_county") || "nairobi" : "nairobi"));
@@ -202,7 +202,7 @@ export function Header() {
     </>
   );
 }
-export function Footer() {
+export function SiteFooter() {
   return (
     <footer className="mt-16 bg-primary-deep text-primary-foreground">
       <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="block w-full bg-primary py-3 text-center text-sm font-medium hover:bg-primary-deep">Back to top</button>

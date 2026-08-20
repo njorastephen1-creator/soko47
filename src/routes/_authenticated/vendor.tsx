@@ -176,6 +176,7 @@ function VendorDashboard() {
       <div className="mt-6 rounded-3xl border border-border bg-card p-6">
         <h2 className="font-display text-xl font-bold">Receive payments YOUR way</h2>
         <p className="mt-1 text-sm text-muted-foreground">Customer money goes straight to YOU - Soko47 never touches it.</p>
+        <p className="mt-1 text-xs text-muted-foreground">How to get your key: create a FREE account at payment.intasend.com → verify → Integrations → API Keys → copy your ISPubKey_live_... and paste it above. Buyers then get automatic M-Pesa prompts and money lands in YOUR account.</p>
         <div className="mt-3 grid gap-3 sm:grid-cols-3">
           <div><Label>Your M-Pesa number</Label><Input value={rr ? rr.phone : ""} onChange={(e) => setRails({ ...rr, phone: e.target.value })} placeholder="0712..." /></div>
           <div><Label>Till / Business no. (optional)</Label><Input value={rr ? rr.till : ""} onChange={(e) => setRails({ ...rr, till: e.target.value })} placeholder="e.g. 123456" /></div>

@@ -17,6 +17,7 @@ function PosPage() {
   const { session } = useSession();
   const qc = useQueryClient();
   const [lines, setLines] = useState<Line[]>([]);
+  const [posFilter, setPosFilter] = useState("all");
   const [customer, setCustomer] = useState("");
   const [method, setMethod] = useState("Cash");
   const [note, setNote] = useState("");
@@ -137,9 +138,10 @@ function PosPage() {
           </div>
           <div className="rounded-3xl border border-border bg-card p-5">
             <h2 className="font-semibold">Incoming orders</h2>
+            <div className="mt-2 flex flex-wrap gap-2">{["all", "pending", "fulfilled", "cancelled"].map((f) => (<button key={f} onClick={() => setPosFilter(f)} className={"rounded-full px-3 py-1 text-xs font-semibold capitalize " + (posFilter === f ? "bg-primary text-primary-foreground" : "bg-secondary")}>{f}</button>))}</div>
             <div className="mt-2 space-y-3">
               {orderGroups.length === 0 && <p className="text-sm text-muted-foreground">No incoming orders yet - they land here the second a buyer checks out.</p>}
-              {orderGroups.map((g: any) => (
+              {orderGroups.filter((g: any) => (posFilter === "all" ? true : g.status === posFilter)).map((g: any) => (
                 <div key={g.id} className="rounded-xl border border-border p-3">
                   <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
                     <span>{new Date(g.created_at).toLocaleString()}</span>

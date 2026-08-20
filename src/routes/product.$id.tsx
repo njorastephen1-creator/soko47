@@ -85,7 +85,7 @@ function ProductPage() {
           <h1 className="mt-3 font-display text-3xl font-bold">{product.title}</h1>
           <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground"><MapPin className="size-4" /> {product.vendors.market_name} · {county ? county.county : ""}</p>
           {r.count > 0 ? <p className="mt-2 flex items-center gap-2 text-sm"><Stars value={r.avg} /> <span className="text-muted-foreground">{r.avg.toFixed(1)} · {r.count} reviews</span></p> : null}
-          <p className="mt-4 font-display text-4xl font-extrabold text-accent-deep">{formatKes(Number(product.price_kes))}<span className="text-sm font-normal text-muted-foreground"> /{product.unit}</span></p>
+          <p className="mt-4 font-display text-4xl font-extrabold text-accent-deep">{(Number(product.offer_price_kes) > 0 ? formatKes(Number(product.offer_price_kes)) : formatKes(Number(product.price_kes)))}<span className="text-sm font-normal text-muted-foreground"> /{product.unit}</span></p>
           <div className="mt-5 flex flex-wrap items-center gap-3">
             <div className="flex items-center rounded-xl border border-border">
               <button className="px-3 py-2 hover:bg-secondary" onClick={() => setQty(Math.max(1, qty - 1))} aria-label="less"><Minus className="size-4" /></button>

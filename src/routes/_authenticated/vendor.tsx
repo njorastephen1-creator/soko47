@@ -41,6 +41,9 @@ function VendorDashboard() {
     },
   });
   const [payPhone, setPayPhone] = useState("");
+  const [prodFilter, setProdFilter] = useState("all");
+  const [prodSearch, setProdSearch] = useState("");
+  const [offers, setOffers] = useState<any>({});
   const [rails, setRails] = useState<any>(null);
   const rr = rails || (vendor ? { phone: vendor.pay_phone || "", till: vendor.till_number || "", pub: vendor.intasend_publishable || "" } : null);
   const saveRails = async () => {
@@ -111,6 +114,27 @@ function VendorDashboard() {
     });
     return Object.values(map).sort((a: any, b: any) => (a.created_at < b.created_at ? 1 : -1));
   })();
+  const saveOffer = async (p: any) => {
+    const val = offers[p.id];
+    const num = val === "" || val == null ? null : Number(val);
+    const { error } = await supabase.from("products").update({ offer_price_kes: num }).eq("id", p.id);
+    if (error) return toast.error(error.message);
+    qc.invalidateQueries();
+    toast.success(num ? "Offer price live - buyers see the discount!" : "Offer removed");
+  };
+  const toggleHide = async (p: any) => {
+    const { error } = await supabase.from("products").update({ is_active: !p.is_active }).eq("id", p.id);
+    if (error) return toast.error(error.message);
+    qc.invalidateQueries();
+    toast.success(p.is_active ? "Product hidden from buyers" : "Product is live again");
+  };
+  const delProduct = async (p: any) => {
+    if (!window.confirm("Delete " + p.title + " forever?")) return;
+    const { error } = await supabase.from("products").delete().eq("id", p.id);
+    if (error) return toast.error(error.message);
+    qc.invalidateQueries();
+    toast.success("Product deleted");
+  };
   const pendingCount = orderGroups.filter((g: any) => g.status === "pending").length;
   return (
     <div className="mx-auto max-w-6xl px-4 pb-28 pt-8 md:pb-8">
@@ -188,16 +212,32 @@ function VendorDashboard() {
         </div>
       </div>
       <div className="mt-6 rounded-3xl border border-border bg-card p-6">
-        <h2 className="font-display text-xl font-bold">Your products</h2>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="font-display text-xl font-bold">Your products</h2>
+          <Input className="w-44" placeholder="Search products..." value={prodSearch} onChange={(e) => setProdSearch(e.target.value)} />
+        </div>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {["all", "active", "hidden"].map((f) => (
+            <button key={f} onClick={() => setProdFilter(f)} className={"rounded-full px-3 py-1 text-xs font-semibold capitalize " + (prodFilter === f ? "bg-primary text-primary-foreground" : "bg-secondary")}>{f === "active" ? "Live" : f}</button>
+          ))}
+        </div>
         <div className="mt-3 space-y-2">
-          {(products || []).map((p: any) => (
-            <div key={p.id} className="flex items-center gap-3 rounded-xl border border-border p-2">
-              {p.image_url ? <img src={p.image_url} alt="" className="size-12 rounded-lg object-cover" /> : null}
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold">{p.title}</p>
-                <p className="text-xs text-muted-foreground">{formatKes(Number(p.price_kes))} · stock {p.stock}</p>
+          {(products || []).filter((p: any) => (prodFilter === "all" ? true : prodFilter === "active" ? p.is_active : !p.is_active)).filter((p: any) => p.title.toLowerCase().includes(prodSearch.toLowerCase())).map((p: any) => (
+            <div key={p.id} className="rounded-xl border border-border p-2">
+              <div className="flex items-center gap-3">
+                {p.image_url ? <img src={p.image_url} alt="" className="size-12 rounded-lg object-cover" /> : null}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold">{p.title} {!p.is_active ? <span className="rounded bg-secondary px-1 text-[10px]">HIDDEN</span> : null}</p>
+                  <p className="text-xs text-muted-foreground">{formatKes(Number(p.price_kes))} · stock {p.stock}{p.offer_price_kes ? " · OFFER " + formatKes(Number(p.offer_price_kes)) : ""}</p>
+                </div>
+                <Button asChild variant="outline" size="sm"><Link to="/enrich/$id" params={{ id: p.id }}>More info</Link></Button>
               </div>
-              <Button asChild variant="outline" size="sm"><Link to="/enrich/$id" params={{ id: p.id }}>Add more info</Link></Button>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <Input className="w-32" placeholder="Offer price" value={offers[p.id] !== undefined ? offers[p.id] : p.offer_price_kes || ""} onChange={(e) => setOffers({ ...offers, [p.id]: e.target.value })} />
+                <Button size="sm" variant="outline" onClick={() => saveOffer(p)}>Save offer</Button>
+                <Button size="sm" variant="outline" onClick={() => toggleHide(p)}>{p.is_active ? "Hide" : "Show"}</Button>
+                <Button size="sm" variant="outline" className="text-destructive" onClick={() => delProduct(p)}>Delete</Button>
+              </div>
             </div>
           ))}
           {(products || []).length === 0 && <p className="text-sm text-muted-foreground">No products yet - add your first one.</p>}

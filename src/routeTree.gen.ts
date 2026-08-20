@@ -20,6 +20,7 @@ import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedHelpRouteImport } from './routes/_authenticated/help'
 import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated/orders'
+import { Route as AuthenticatedPosRouteImport } from './routes/_authenticated/pos'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedVendorRouteImport } from './routes/_authenticated/vendor'
 import { Route as MarketsIndexRouteImport } from './routes/markets.index'
@@ -83,6 +84,11 @@ const AuthenticatedOrdersRoute = AuthenticatedOrdersRouteImport.update({
   path: '/orders',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPosRoute = AuthenticatedPosRouteImport.update({
+  id: '/pos',
+  path: '/pos',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -135,6 +141,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/help': typeof AuthenticatedHelpRoute
   '/orders': typeof AuthenticatedOrdersRoute
+  '/pos': typeof AuthenticatedPosRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/vendor': typeof AuthenticatedVendorRoute
   '/markets/$county': typeof MarketsCountyRoute
@@ -155,6 +162,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/help': typeof AuthenticatedHelpRoute
   '/orders': typeof AuthenticatedOrdersRoute
+  '/pos': typeof AuthenticatedPosRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/vendor': typeof AuthenticatedVendorRoute
   '/markets/$county': typeof MarketsCountyRoute
@@ -177,6 +185,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/help': typeof AuthenticatedHelpRoute
   '/_authenticated/orders': typeof AuthenticatedOrdersRoute
+  '/_authenticated/pos': typeof AuthenticatedPosRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/vendor': typeof AuthenticatedVendorRoute
   '/markets/$county': typeof MarketsCountyRoute
@@ -199,6 +208,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/help'
     | '/orders'
+    | '/pos'
     | '/settings'
     | '/vendor'
     | '/markets/$county'
@@ -219,6 +229,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/help'
     | '/orders'
+    | '/pos'
     | '/settings'
     | '/vendor'
     | '/markets/$county'
@@ -240,6 +251,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/help'
     | '/_authenticated/orders'
+    | '/_authenticated/pos'
     | '/_authenticated/settings'
     | '/_authenticated/vendor'
     | '/markets/$county'
@@ -343,6 +355,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrdersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/pos': {
+      id: '/_authenticated/pos'
+      path: '/pos'
+      fullPath: '/pos'
+      preLoaderRoute: typeof AuthenticatedPosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
       path: '/settings'
@@ -407,6 +426,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedHelpRoute: typeof AuthenticatedHelpRoute
   AuthenticatedOrdersRoute: typeof AuthenticatedOrdersRoute
+  AuthenticatedPosRoute: typeof AuthenticatedPosRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedVendorRoute: typeof AuthenticatedVendorRoute
   AuthenticatedEnrichIdRoute: typeof AuthenticatedEnrichIdRoute
@@ -418,6 +438,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedHelpRoute: AuthenticatedHelpRoute,
   AuthenticatedOrdersRoute: AuthenticatedOrdersRoute,
+  AuthenticatedPosRoute: AuthenticatedPosRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedVendorRoute: AuthenticatedVendorRoute,
   AuthenticatedEnrichIdRoute: AuthenticatedEnrichIdRoute,

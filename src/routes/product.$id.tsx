@@ -123,8 +123,14 @@ function ProductPage() {
               <Play className="size-4" /> Watch product video
             </button>
           ) : (
-            <div className="overflow-hidden rounded-3xl border border-border bg-black">
-              {yid ? <iframe className="aspect-video w-full" src={"https://www.youtube.com/embed/" + yid} title="Product video" allowFullScreen /> : <video controls className="aspect-video w-full" src={product.video_url} />}
+            <div>
+              <div className="mb-2 flex items-center justify-between">
+                <h2 className="font-display text-xl font-bold">Product video</h2>
+                <button onClick={() => setShowVideo(false)} className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-semibold hover:bg-secondary">Close video</button>
+              </div>
+              <div className="overflow-hidden rounded-3xl border border-border bg-black">
+                {yid ? <iframe className="aspect-video w-full max-w-sm" src={"https://www.youtube.com/embed/" + yid} title="Product video" allowFullScreen /> : <video controls className="aspect-video w-full max-w-sm" src={product.video_url} />}
+              </div>
             </div>
           )}
         </div>

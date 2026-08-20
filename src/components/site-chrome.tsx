@@ -193,6 +193,7 @@ export function SiteHeader() {
               <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Sell</p>
               <Link to="/sell" onClick={() => setOpen(false)} className="block rounded-md px-2 py-1.5 text-sm hover:bg-secondary">Open a shop</Link>
               {myVendor && <Link to="/vendor" onClick={() => setOpen(false)} className="block rounded-md px-2 py-1.5 text-sm hover:bg-secondary">Shop dashboard</Link>}
+              {myVendor && <Link to="/pos" onClick={() => setOpen(false)} className="block rounded-md px-2 py-1.5 text-sm hover:bg-secondary">POS & Receipts</Link>}
               {isAdmin && <Link to="/admin" onClick={() => setOpen(false)} className="block rounded-md px-2 py-1.5 text-sm hover:bg-secondary">Admin command center</Link>}
             </div>
             <div className="mt-5">

@@ -51,7 +51,7 @@ function PosPage() {
     queryKey: ["incoming-orders", myVendor ? myVendor.id : "none"],
     enabled: !!myVendor,
     queryFn: async () => {
-      const { data } = await supabase.from("order_items").select("order_id, qty, price_kes, products(title), orders(*)").eq("vendor_id", myVendor!.id).order("created_at", { ascending: false }).limit(60);
+      const { data } = await supabase.from("order_items").select("order_id, quantity, unit_price_kes, title, orders(*)").eq("vendor_id", myVendor!.id).order("created_at", { ascending: false }).limit(60);
       return data || [];
     },
   });
@@ -86,8 +86,8 @@ function PosPage() {
       const o = row.orders;
       if (!o) return;
       if (!map[row.order_id]) map[row.order_id] = { id: row.order_id, buyer_name: o.buyer_name, buyer_phone: o.buyer_phone, delivery_location: o.delivery_location, status: o.status, payment_status: o.payment_status, created_at: o.created_at, items: [], total: 0 };
-      map[row.order_id].items.push({ title: row.products ? row.products.title : "Item", qty: row.qty, price: Number(row.price_kes) });
-      map[row.order_id].total += Number(row.price_kes) * row.qty;
+      map[row.order_id].items.push({ title: row.title || "Item", qty: row.quantity, price: Number(row.unit_price_kes) });
+      map[row.order_id].total += Number(row.unit_price_kes) * row.quantity;
     });
     return Object.values(map).sort((a: any, b: any) => (a.created_at < b.created_at ? 1 : -1));
   })();

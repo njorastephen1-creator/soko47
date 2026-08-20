@@ -1,4 +1,5 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import fs from 'fs';
+fs.writeFileSync('src/routes/browse.tsx', `import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { CATEGORIES, COUNTIES } from "@/data/markets";
@@ -64,3 +65,15 @@ function BrowsePage() {
     </div>
   );
 }
+`);
+console.log('Created bulletproof browse search');
+let chrome = fs.readFileSync('src/components/site-chrome.tsx', 'utf8');
+const oldLogo = '<Link to="/" className="flex shrink-0 items-center rounded-lg bg-white p-2" aria-label="Soko47 home">';
+const newLogo = '<Link to="/" className="flex shrink-0 items-center gap-1 rounded-xl bg-white px-2.5 py-1.5 shadow-md" aria-label="Soko47 home">';
+if (chrome.includes(oldLogo)) {
+  chrome = chrome.split(oldLogo).join(newLogo);
+  chrome = chrome.split('<span className="font-display text-sm font-extrabold text-primary">SOKO<span className="text-accent-deep">47</span></span>').join('<ShoppingBasket className="size-4 text-accent-deep" />\n            <span className="font-display text-base font-black tracking-tight text-primary">soko<span className="text-accent-deep">47</span></span>');
+  fs.writeFileSync('src/components/site-chrome.tsx', chrome);
+  console.log('Patched logo');
+} else console.log('WARNING: logo anchor not found');
+console.log('DONE: search + logo');

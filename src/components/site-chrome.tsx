@@ -102,8 +102,9 @@ export function SiteHeader() {
     <>
       <header className="sticky top-0 z-40 bg-primary text-primary-foreground shadow-md">
         <div className="mx-auto flex max-w-7xl items-center gap-2 px-3 py-2.5 sm:gap-3 sm:px-4">
-          <Link to="/" className="flex shrink-0 items-center rounded-lg bg-white p-2" aria-label="Soko47 home">
-            <span className="font-display text-sm font-extrabold text-primary">SOKO<span className="text-accent-deep">47</span></span>
+          <Link to="/" className="flex shrink-0 items-center gap-1 rounded-xl bg-white px-2.5 py-1.5 shadow-md" aria-label="Soko47 home">
+            <ShoppingBasket className="size-4 text-accent-deep" />
+            <span className="font-display text-base font-black tracking-tight text-primary">soko<span className="text-accent-deep">47</span></span>
           </Link>
           <button className="hidden shrink-0 items-center gap-1 rounded-md px-2 py-1 text-left hover:bg-black/10 md:flex" onClick={() => setOpen(true)}>
             <MapPin className="size-4 text-accent" />

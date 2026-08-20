@@ -28,7 +28,7 @@ function NotificationsBell() {
   };
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="relative rounded-md p-2 hover:bg-primary-deep">
+      <DropdownMenuTrigger className="relative rounded-md p-2 hover:bg-black/10">
         <Bell className="size-5" />
         {unread > 0 && <span className="warm-surface absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full text-[9px] font-bold">{unread}</span>}
       </DropdownMenuTrigger>
@@ -105,7 +105,7 @@ export function SiteHeader() {
           <Link to="/" className="flex shrink-0 items-center rounded-lg bg-white p-2" aria-label="Soko47 home">
             <span className="font-display text-sm font-extrabold text-primary">SOKO<span className="text-accent-deep">47</span></span>
           </Link>
-          <button className="hidden shrink-0 items-center gap-1 rounded-md px-2 py-1 text-left hover:bg-primary-deep md:flex" onClick={() => setOpen(true)}>
+          <button className="hidden shrink-0 items-center gap-1 rounded-md px-2 py-1 text-left hover:bg-black/10 md:flex" onClick={() => setOpen(true)}>
             <MapPin className="size-4 text-accent" />
             <span><span className="block text-[10px] opacity-80">Deliver to</span><span className="block text-sm font-semibold">{county ? county.county : "Kenya"}</span></span>
           </button>
@@ -119,7 +119,7 @@ export function SiteHeader() {
           </form>
           <div className="hidden shrink-0 sm:block"><NotificationsBell /></div>
           <DropdownMenu>
-            <DropdownMenuTrigger className="hidden shrink-0 rounded-md px-2 py-1 text-left hover:bg-primary-deep md:block">
+            <DropdownMenuTrigger className="hidden shrink-0 rounded-md px-2 py-1 text-left hover:bg-black/10 md:block">
               <span className="block text-[10px] opacity-80">Hello, {fullName}</span>
               <span className="block text-sm font-semibold">{role} · Account & Lists <ChevronDown className="inline size-3" /></span>
             </DropdownMenuTrigger>
@@ -132,17 +132,17 @@ export function SiteHeader() {
               <DropdownMenuItem onClick={signOut}>Sign out</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Link to="/orders" className="hidden shrink-0 rounded-md px-2 py-1 hover:bg-primary-deep md:block">
+          <Link to="/orders" className="hidden shrink-0 rounded-md px-2 py-1 hover:bg-black/10 md:block">
             <span className="block text-[10px] opacity-80">Returns</span>
             <span className="block text-sm font-semibold">& Orders</span>
           </Link>
-          <Link to="/cart" className="relative shrink-0 rounded-md p-2 hover:bg-primary-deep" aria-label="Cart">
+          <Link to="/cart" className="relative shrink-0 rounded-md p-2 hover:bg-black/10" aria-label="Cart">
             <ShoppingBasket className="size-6" />
             <span className="warm-surface absolute right-0 top-0 flex size-4 items-center justify-center rounded-full text-[10px] font-bold">{count}</span>
           </Link>
-          <button className="shrink-0 rounded-md p-2 hover:bg-primary-deep md:hidden" aria-label="Menu" onClick={() => setOpen(true)}><Menu className="size-6" /></button>
+          <button className="shrink-0 rounded-md p-2 hover:bg-black/10 md:hidden" aria-label="Menu" onClick={() => setOpen(true)}><Menu className="size-6" /></button>
         </div>
-        <nav className="bg-primary-deep text-sm">
+        <nav className="bg-black/10 text-sm">
           <div className="mx-auto flex max-w-7xl items-center gap-4 overflow-x-auto px-3 py-2 sm:px-4">
             <button className="flex items-center gap-1 whitespace-nowrap font-semibold md:hidden" onClick={() => setOpen(true)}><Menu className="size-4" /> All</button>
             <Link to="/browse" className="whitespace-nowrap font-medium hover:underline">All goods</Link>
@@ -204,8 +204,8 @@ export function SiteHeader() {
 }
 export function SiteFooter() {
   return (
-    <footer className="mt-16 bg-primary-deep text-primary-foreground">
-      <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="block w-full bg-primary py-3 text-center text-sm font-medium hover:bg-primary-deep">Back to top</button>
+    <footer className="mt-16 bg-primary text-primary-foreground">
+      <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="block w-full bg-primary py-3 text-center text-sm font-medium hover:bg-black/10">Back to top</button>
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:grid-cols-3">
         <div>
           <p className="font-display text-lg font-bold">Soko47</p>

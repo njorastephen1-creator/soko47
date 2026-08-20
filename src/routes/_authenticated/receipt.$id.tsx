@@ -49,10 +49,35 @@ function ReceiptPage() {
     qc.invalidateQueries();
     toast.success("Order cancelled - the trader has been notified");
   };
+  const printHtml = () => {
+    const qr = (document.getElementById("qr-wrap") || ({} as any)).innerHTML || "";
+    const rows = (items || []).map((i: any) => "<tr><td>" + i.title + " x" + i.quantity + "</td><td style='text-align:right'>" + formatKes(Number(i.unit_price_kes) * i.quantity) + "</td></tr>").join("");
+    const html = "<html><head><title>Soko47 Receipt</title><style>body{font-family:'Courier New',monospace;font-size:12px;color:#000;margin:8mm auto;width:72mm}p{margin:2px 0}.c{text-align:center}.b{font-weight:bold}hr{border:none;border-top:1px dashed #000;margin:6px 0}table{width:100%;border-collapse:collapse}td{padding:2px 0;vertical-align:top}.qr{text-align:center;margin-top:8px}</style></head><body>" +
+      "<p class='c b'>" + (vendor ? vendor.shop_name.toUpperCase() : "SOKO47") + "</p>" +
+      "<p class='c'>" + (vendor ? vendor.market_name : "Official sales receipt") + "</p>" +
+      "<p class='c'>Soko47 verified trader</p><hr>" +
+      "<p>Receipt #" + id.slice(0, 8) + "</p>" +
+      "<p>" + new Date(order.created_at).toLocaleString() + "</p>" +
+      "<p>Buyer: " + order.buyer_name + "</p>" +
+      "<p>Tel: " + order.buyer_phone + "</p>" +
+      (order.delivery_location ? "<p>" + order.delivery_location + "</p>" : "") +
+      "<hr><table>" + rows + "</table><hr>" +
+      "<p class='b'>TOTAL: " + formatKes(total || Number(order.total_kes)) + "</p>" +
+      "<p>Status: " + order.status + "</p><hr>" +
+      "<div class='qr'>" + qr + "</div>" +
+      "<p class='c'>Scan to verify & reorder</p>" +
+      "<p class='c'>Thank you - asante sana!</p>" +
+      "<p class='c'>Powered by Soko47</p></body></html>";
+    const w = window.open("", "_blank");
+    if (!w) { toast.error("Allow popups to print or share"); return; }
+    w.document.write(html);
+    w.document.close();
+    setTimeout(() => { w.focus(); w.print(); }, 300);
+  };
   return (
     <div className="mx-auto max-w-2xl px-4 pb-28 pt-8 md:pb-8">
       <div className="flex justify-end">
-        <Button onClick={() => window.print()}><Printer className="size-4" /> Print / Save as PDF</Button>
+        <Button onClick={printHtml}><Printer className="size-4" /> Print / Save as PDF</Button>
       </div>
       <div id="receipt-area" className="mt-4 rounded-3xl border border-border bg-card p-6">
         <div className="flex items-start justify-between gap-3">
@@ -96,7 +121,7 @@ function ReceiptPage() {
         <div className="mt-3 flex justify-between font-display text-lg font-extrabold"><span>Total</span><span>{formatKes(total || Number(order.total_kes))}</span></div>
         {shopUrl ? (
           <div className="mt-5 flex flex-col items-center border-t border-dashed border-border pt-4">
-            <div className="rounded-xl bg-white p-2"><QRCodeSVG value={shopUrl} size={96} /></div>
+            <div id="qr-wrap" className="rounded-xl bg-white p-2"><QRCodeSVG value={shopUrl} size={96} /></div>
             <p className="mt-1 text-center text-[11px] text-muted-foreground">Scan to verify this trader & shop again on Soko47</p>
           </div>
         ) : null}

@@ -37,7 +37,7 @@ function BrowsePage() {
     },
   });
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8">
+    <div className="mx-auto max-w-7xl px-4 pb-28 pt-8 md:pb-8">
       <h1 className="font-display text-3xl font-bold">{q ? "Results for " + q : "Shop all goods"}</h1>
       <div className="mt-5 flex flex-wrap gap-2">
         <button onClick={() => nav({ q, county })} className={chip(!category)}>All</button>

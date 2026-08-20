@@ -53,7 +53,7 @@ function ProductPage() {
   };
   const yid = product.video_url ? ytId(product.video_url) : null;
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
+    <div className="mx-auto max-w-6xl px-4 pb-28 pt-8 md:pb-8">
       <nav className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
         <Link to="/" className="hover:underline">Home</Link><ChevronRight className="size-3" />
         <Link to="/browse" className="hover:underline">Shop</Link><ChevronRight className="size-3" />

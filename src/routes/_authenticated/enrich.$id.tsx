@@ -72,7 +72,7 @@ function EnrichPage() {
     navigate({ to: "/product/$id", params: { id } });
   };
   return (
-    <div className="mx-auto max-w-2xl px-4 py-10">
+    <div className="mx-auto max-w-2xl px-4 pb-28 pt-10 md:pb-10">
       <h1 className="font-display text-3xl font-bold">Add more info</h1>
       <p className="mt-1 text-sm text-muted-foreground">Richer listings sell faster - buyers love details, videos and answers.</p>
       <div className="mt-6 space-y-5 rounded-3xl border border-border bg-card p-6">

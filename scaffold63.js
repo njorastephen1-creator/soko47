@@ -1,4 +1,5 @@
-import { Upload } from "lucide-react";
+import fs from 'fs';
+fs.writeFileSync('src/components/image-upload.tsx', `import { Upload } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,3 +37,16 @@ export function ImageUpload({ value, onChange }: { value?: string; onChange: (ur
     </label>
   );
 }
+`);
+console.log('Uploader: direct file, no canvas, no black photos');
+const pads = [
+  ['src/routes/_authenticated/enrich.$id.tsx', '<div className="mx-auto max-w-2xl px-4 py-10">', '<div className="mx-auto max-w-2xl px-4 pb-28 pt-10 md:pb-10">'],
+  ['src/routes/product.$id.tsx', '<div className="mx-auto max-w-6xl px-4 py-8">', '<div className="mx-auto max-w-6xl px-4 pb-28 pt-8 md:pb-8">'],
+  ['src/routes/browse.tsx', '<div className="mx-auto max-w-7xl px-4 py-8">', '<div className="mx-auto max-w-7xl px-4 pb-28 pt-8 md:pb-8">']
+];
+for (const [file, oldS, newS] of pads) {
+  let c = fs.readFileSync(file, 'utf8');
+  if (c.includes(oldS)) { c = c.split(oldS).join(newS); fs.writeFileSync(file, c); console.log('Scroll room added:', file); }
+  else console.log('WARNING: container not found in', file);
+}
+console.log('DONE');

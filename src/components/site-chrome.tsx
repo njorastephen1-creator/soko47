@@ -73,8 +73,9 @@ function MobileNav() {
   );
 }
 export function SiteHeader() {
-  const [q, setQ] = useState("");
-  const [sc, setSc] = useState("all");
+  
+  const qRef = (typeof window !== "undefined" ? (window as any).__soko47_q || "" : "");
+  
   const [countySlug, setCountySlug] = useState(() => (typeof window !== "undefined" ? localStorage.getItem("soko47_county") || "nairobi" : "nairobi"));
   const [open, setOpen] = useState(false);
   const { session } = useSession();
@@ -94,7 +95,9 @@ export function SiteHeader() {
   const role = myVendor ? "Trader" : "Buyer";
   const go = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate({ to: "/browse", search: { q: q || undefined, category: sc === "all" ? undefined : sc } });
+    const input = (e.target as HTMLFormElement).querySelector("input") as HTMLInputElement;
+    const query = input ? input.value.trim() : "";
+    navigate({ to: "/browse", search: { q: query || undefined, category: sc === "all" ? undefined : sc } });
   };
   const setCounty = (slug: string) => { setCountySlug(slug); localStorage.setItem("soko47_county", slug); };
   const signOut = async () => { await supabase.auth.signOut(); toast.success("Signed out - see you soon!"); navigate({ to: "/" }); };
@@ -115,7 +118,7 @@ export function SiteHeader() {
               <option value="all">All</option>
               {CATEGORIES.map((c) => (<option key={c.slug} value={c.slug}>{c.name}</option>))}
             </select>
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search sufuria, sofa, tomatoes, phones..." className="min-w-0 flex-1 px-3 py-2 text-sm text-foreground outline-none" />
+            <input defaultValue={qRef} ref={(el) => { if (el && typeof window !== "undefined") (window as any).__soko47_q = el.value; }} placeholder="Search sufuria, sofa, tomatoes, phones..." className="min-w-0 flex-1 px-3 py-2 text-sm text-foreground outline-none" />
             <button className="bg-accent px-3 sm:px-4" aria-label="Search"><Search className="size-4 text-foreground" /></button>
           </form>
           <div className="hidden shrink-0 sm:block"><NotificationsBell /></div>

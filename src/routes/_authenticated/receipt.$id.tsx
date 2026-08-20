@@ -30,7 +30,7 @@ function ReceiptPage() {
     queryKey: ["order-receipt-vendor", items && items[0] ? items[0].vendor_id : "none"],
     enabled: !!(items && items[0]),
     queryFn: async () => {
-      const { data } = await supabase.from("vendors").select("shop_name, market_name, slug, user_id").eq("id", items![0].vendor_id).maybeSingle();
+      const { data } = await supabase.from("vendors").select("shop_name, market_name, slug, user_id, phone, whatsapp").eq("id", items![0].vendor_id).maybeSingle();
       return data;
     },
   });
@@ -113,6 +113,12 @@ function ReceiptPage() {
           <div className="mt-4 rounded-2xl border border-border bg-card p-4 text-sm">
             <p className="font-semibold">🔒 Order locked in</p>
             <p className="mt-1 text-muted-foreground">The trader is already preparing your goods - asante for shopping local! 🇰</p>
+            {vendor && vendor.phone ? (
+              <div className="mt-2 flex flex-wrap gap-2">
+                <a href={"tel:" + vendor.phone} className="flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-xs font-semibold hover:bg-secondary">📞 Call {vendor.shop_name}</a>
+                {vendor.whatsapp ? <a href={"https://wa.me/" + vendor.whatsapp} target="_blank" rel="noreferrer" className="flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">WhatsApp trader</a> : null}
+              </div>
+            ) : null}
           </div>
         )
       ) : null}

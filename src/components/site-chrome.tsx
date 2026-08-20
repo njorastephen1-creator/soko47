@@ -120,7 +120,7 @@ export function SiteHeader() {
             <input defaultValue="" placeholder="Search sufuria, sofa, tomatoes, phones..." className="min-w-0 flex-1 px-3 py-2 text-sm text-foreground outline-none" />
             <button className="bg-accent px-3 sm:px-4" aria-label="Search"><Search className="size-4 text-foreground" /></button>
           </form>
-          <div className="hidden shrink-0 sm:block"><NotificationsBell /></div>
+          <div className="shrink-0"><NotificationsBell /></div>
           <DropdownMenu>
             <DropdownMenuTrigger className="hidden shrink-0 rounded-md px-2 py-1 text-left hover:bg-black/10 md:block">
               <span className="block text-[10px] opacity-80">Hello, {fullName}</span>

@@ -45,10 +45,10 @@ function VendorDashboard() {
   const [prodSearch, setProdSearch] = useState("");
   const [offers, setOffers] = useState<any>({});
   const [rails, setRails] = useState<any>(null);
-  const rr = rails || (vendor ? { phone: vendor.pay_phone || "", till: vendor.till_number || "", pub: vendor.intasend_publishable || "" } : null);
+  const rr = rails || (vendor ? { phone: vendor.pay_phone || "", till: vendor.till_number || "", pub: vendor.intasend_publishable || "", s47: !!vendor.soko47_pay } : null);
   const saveRails = async () => {
     if (!vendor) return;
-    const { error } = await supabase.from("vendors").update({ pay_phone: rr.phone.trim() || null, till_number: rr.till.trim() || null, intasend_publishable: rr.pub.trim() || null }).eq("id", vendor.id);
+    const { error } = await supabase.from("vendors").update({ pay_phone: rr.phone.trim() || null, till_number: rr.till.trim() || null, intasend_publishable: rr.pub.trim() || null, soko47_pay: !!rr.s47 }).eq("id", vendor.id);
     if (error) return toast.error(error.message);
     qc.invalidateQueries();
     toast.success("Payment details saved - customers can now pay YOU directly");
@@ -182,6 +182,7 @@ function VendorDashboard() {
           <div><Label>Till / Business no. (optional)</Label><Input value={rr ? rr.till : ""} onChange={(e) => setRails({ ...rr, till: e.target.value })} placeholder="e.g. 123456" /></div>
           <div><Label>Your own IntaSend key (optional)</Label><Input value={rr ? rr.pub : ""} onChange={(e) => setRails({ ...rr, pub: e.target.value })} placeholder="ISPubKey_live_..." /></div>
         </div>
+        <label className="mt-3 flex items-center gap-2 text-sm font-semibold"><input type="checkbox" checked={!!(rr && rr.s47)} onChange={(e) => setRails({ ...rr, s47: e.target.checked })} /> Enable Soko47 Pay - auto prompts for buyers + instant auto payouts to my M-Pesa (1% fee)</label>
         <Button className="mt-3" onClick={saveRails}>Save payment details</Button>
       </div>
       <div className="mt-6 rounded-3xl border border-border bg-card p-6">

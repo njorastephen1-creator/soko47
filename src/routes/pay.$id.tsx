@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Copy, ExternalLink, Phone } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { formatKes } from "@/lib/cart";
@@ -29,7 +29,7 @@ function PayHub() {
     queryKey: ["pay-vendors", vendorIds.join(",")],
     enabled: vendorIds.length > 0,
     queryFn: async () => {
-      const { data } = await supabase.from("vendors").select("id, shop_name, pay_phone, till_number, intasend_publishable, phone").in("id", vendorIds);
+      const { data } = await supabase.from("vendors").select("id, shop_name, pay_phone, till_number, intasend_publishable, phone, soko47_pay").in("id", vendorIds);
       return data || [];
     },
   });
@@ -38,10 +38,57 @@ function PayHub() {
     const gtotal = lines.reduce((s: number, i: any) => s + Number(i.unit_price_kes) * i.quantity, 0);
     return { v, lines, total: gtotal };
   });
+  const [busy, setBusy] = useState<string | null>(null);
+  const doPayout = async (g: any) => {
+    const gross = Math.round(g.total);
+    const net = Math.round(gross * 0.99);
+    const fee = gross - net;
+    const r = await fetch("/api/payout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ phone: g.v.pay_phone, amount: net, reference: "S47P-" + id.slice(0, 8) + "-" + g.v.id.slice(0, 8), name: g.v.shop_name }) });
+    const d = await r.json().catch(() => ({}));
+    await supabase.from("payouts").insert({ order_id: id, vendor_id: g.v.id, gross_kes: gross, fee_kes: fee, net_kes: net, status: r.ok ? "sent" : "failed", invoice_id: (d && d.invoice_id) || null }).catch(() => {});
+    if (!r.ok) { toast.error("Payout queued - trader collects from dashboard"); return; }
+    toast.success("Trader paid " + formatKes(net) + " instantly (1% platform fee earned)");
+  };
+  const payGroup = async (g: any) => {
+    setBusy(g.v.id);
+    try {
+      const d = await stkPush(order.buyer_phone, g.total, "S47-" + id.slice(0, 8) + "-" + g.v.id.slice(0, 8), order.buyer_name);
+      const invoice = d.invoice_id || d.id;
+      if (!invoice) throw new Error(d.error || "No invoice");
+      toast.info("M-Pesa prompt sent - enter your PIN");
+      for (let i = 0; i < 30; i++) {
+        await new Promise((r2) => setTimeout(r2, 4000));
+        const s = await stkStatus(invoice);
+        const state = String((s.invoice && s.invoice.state) || s.state || "").toLowerCase();
+        if (["complete", "completed", "paid", "success"].includes(state)) {
+          await supabase.from("orders").update({ payment_status: "paid" }).eq("id", id);
+          qc.invalidateQueries();
+          toast.success("Payment received!");
+          if (g.v.pay_phone) await doPayout(g);
+          setBusy(null);
+          return;
+        }
+        if (["failed", "cancelled", "canceled"].includes(state)) throw new Error("Payment " + state);
+      }
+      toast.error("Timed out - check your M-Pesa messages");
+    } catch (e: any) {
+      toast.error(String(e.message || e));
+    }
+    setBusy(null);
+  };
+  const fired47 = useRef(false);
+  useEffect(() => {
+    if (fired47.current || !groups.length || !order) return;
+    const g47 = groups.filter((g: any) => g.v.soko47_pay && g.v.pay_phone);
+    if (g47.length !== 1) return;
+    fired47.current = true;
+    toast.info("Soko47 Pay: sending prompt for " + g47[0].v.shop_name + "...");
+    payGroup(g47[0]);
+  }, [groups.length, order]);
   const fired = useRef(false);
   useEffect(() => {
     if (fired.current || !groups.length || !order) return;
-    const connected = groups.filter((g: any) => g.v.intasend_publishable);
+    const connected = groups.filter((g: any) => g.v.intasend_publishable && !g.v.soko47_pay);
     if (connected.length !== 1) return;
     fired.current = true;
     const g = connected[0];
@@ -108,6 +155,7 @@ function PayHub() {
               {g.lines.map((i: any, x: number) => (<p key={x}>{i.title} × {i.quantity} · {formatKes(Number(i.unit_price_kes) * i.quantity)}</p>))}
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
+              {g.v.soko47_pay && g.v.pay_phone ? <Button size="sm" onClick={() => payGroup(g)} disabled={busy === g.v.id}>{busy === g.v.id ? "Waiting for PIN..." : "⚡ Soko47 Pay " + formatKes(g.total)}</Button> : null}
               {g.v.intasend_publishable ? <Button size="sm" onClick={() => prompt(g)}><ExternalLink className="size-4" /> Auto-prompt my phone</Button> : null}
               {g.v.pay_phone ? <Button size="sm" variant="outline" onClick={() => copy(g.v.pay_phone, "M-Pesa " + g.v.pay_phone)}><Copy className="size-4" /> M-Pesa: {g.v.pay_phone}</Button> : null}
               {g.v.till_number ? <Button size="sm" variant="outline" onClick={() => copy(g.v.till_number, "Till " + g.v.till_number)}><Copy className="size-4" /> Till: {g.v.till_number}</Button> : null}

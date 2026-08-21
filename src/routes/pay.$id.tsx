@@ -69,7 +69,7 @@ function PayHub() {
         const s = await stkStatus(invoice);
         const state = String((s.invoice && s.invoice.state) || s.state || "").toLowerCase();
         if (["complete", "completed", "paid", "success"].includes(state)) {
-          await supabase.from("orders").update({ payment_status: "paid" }).eq("id", id);
+          await supabase.from("orders").update({ payment_status: "paid", payment_ref: invoice, payment_method: "Soko47 Pay (auto-verified)" }).eq("id", id);
           qc.invalidateQueries();
           toast.success("Payment received!");
           if (g.v.pay_phone) fetch("/api/sms", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ phone: g.v.pay_phone, message: "Soko47: paid order " + id.slice(0, 6) + " worth " + formatKes(g.total) + " from " + order.buyer_name }) }).catch(() => {});
@@ -179,7 +179,7 @@ function PayHub() {
           </div>
         ))}
       </div>
-      <Button size="lg" className="mt-6 w-full" onClick={async () => { await supabase.from("orders").update({ payment_status: "paid" }).eq("id", id); qc.invalidateQueries(); toast.success("Noted! The trader now sees your order as PAID"); }}>✅ I have paid - notify the trader</Button>
+      <Button size="lg" className="mt-6 w-full" onClick={async () => { await supabase.from("orders").update({ payment_status: "claimed", payment_method: "Direct (buyer claim)" }).eq("id", id); qc.invalidateQueries(); toast.success("Trader notified to verify on their M-Pesa"); }}>💵 I paid directly (cash / M-Pesa to trader)</Button>
       <div className="mt-6 flex gap-2">
         <Button asChild variant="outline" className="flex-1"><Link to="/orders">My orders</Link></Button>
         <Button asChild className="flex-1"><Link to="/browse">Continue shopping</Link></Button>

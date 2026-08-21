@@ -200,6 +200,9 @@ function VendorDashboard() {
               <p className="mt-1 text-sm font-semibold">{g.buyer_name} · <a className="underline" href={"tel:" + g.buyer_phone}>{g.buyer_phone}</a></p>
               <p className="text-xs text-muted-foreground">{g.delivery_location || "Pickup at stall"}</p>
               {g.delivery_status && g.delivery_status !== "none" ? <p className="text-xs font-semibold text-accent-deep">🛵 Delivery: {g.delivery_status}</p> : null}
+              {g.payment_status === "paid" && g.payment_ref ? <p className="text-xs font-semibold text-success">✅ PAID via {g.payment_method || "M-Pesa"} · ref {String(g.payment_ref).slice(0, 8)}</p> : null}
+              {g.payment_status === "paid" && !g.payment_ref ? <p className="text-xs font-semibold text-success">✅ PAID</p> : null}
+              {g.payment_status === "claimed" ? <p className="text-xs font-semibold text-warning">⚠️ Buyer claims direct payment - check your M-Pesa SMS before fulfilling</p> : null}
               <div className="mt-2 space-y-1 text-sm">
                 {g.items.map((i: any, x: number) => (<div key={x} className="flex justify-between"><span>{i.title} x{i.qty}</span><span>{formatKes(i.price * i.qty)}</span></div>))}
               </div>

@@ -184,7 +184,7 @@ function VendorDashboard() {
           <div><Label>Till / Business no. (optional)</Label><Input value={rr ? rr.till : ""} onChange={(e) => setRails({ ...rr, till: e.target.value })} placeholder="e.g. 123456" /></div>
           <div><Label>Your own IntaSend key (optional)</Label><Input value={rr ? rr.pub : ""} onChange={(e) => setRails({ ...rr, pub: e.target.value })} placeholder="ISPubKey_live_..." /></div>
         </div>
-        <label className="mt-3 flex items-center gap-2 text-sm font-semibold"><input type="checkbox" checked={!!(rr && rr.s47)} onChange={(e) => setRails({ ...rr, s47: e.target.checked })} /> Enable Soko47 Pay - auto prompts for buyers + instant auto payouts to my M-Pesa (1% fee)</label>
+        <label className="mt-3 flex items-center gap-2 text-sm font-semibold"><input type="checkbox" checked={!!(rr && rr.s47)} onChange={(e) => { setRails({ ...rr, s47: e.target.checked }); supabase.from("vendors").update({ soko47_pay: e.target.checked }).eq("id", vendor.id).then(() => { qc.invalidateQueries(); toast.success(e.target.checked ? "Soko47 Pay ON - buyers now get auto prompts" : "Soko47 Pay turned off"); }); }} /> Enable Soko47 Pay - auto prompts for buyers + instant auto payouts to my M-Pesa (1% fee)</label>
         <Button className="mt-3" onClick={saveRails}>Save payment details</Button>
       </div>
       <div className="mt-6 rounded-3xl border border-border bg-card p-6">

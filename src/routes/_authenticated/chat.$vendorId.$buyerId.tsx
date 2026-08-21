@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Copy, Download, Pencil, Send, Trash2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -17,6 +17,7 @@ function ChatThread() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showProfile, setShowProfile] = useState(false);
+  const [fullPhoto, setFullPhoto] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
   const { data: msgs } = useQuery({
     queryKey: ["thread", vendorId, buyerId],
@@ -123,7 +124,7 @@ function ChatThread() {
   return (
     <div className="mx-auto flex max-w-2xl flex-col md:px-4 md:pt-6" style={{ height: "94vh" }} onClick={() => setSelectedId(null)}>
       <div className={"flex items-center gap-3 rounded-t-2xl p-3 text-white " + (selectedMsg ? "bg-[#202c33]" : "bg-[#075E54]")}>
-        {otherPhoto ? <img src={otherPhoto} alt="" onClick={() => setShowProfile(!showProfile)} className="size-10 cursor-pointer rounded-full object-cover" /> : <span onClick={() => setShowProfile(!showProfile)} className="flex size-10 cursor-pointer items-center justify-center rounded-full bg-white/20 font-display font-bold">{otherInitial}</span>}
+        {otherPhoto ? <img src={otherPhoto} alt="" onClick={(e) => { e.stopPropagation(); setFullPhoto(otherPhoto); }} className="size-10 cursor-pointer rounded-full object-cover" /> : <span onClick={() => setShowProfile(!showProfile)} className="flex size-10 cursor-pointer items-center justify-center rounded-full bg-white/20 font-display font-bold">{otherInitial}</span>}
         <div className="flex-1 cursor-pointer" onClick={() => setShowProfile(!showProfile)}>
           <p className="font-semibold">{otherName}</p>
           <p className="text-[11px] opacity-80">{selectedMsg ? (isMine ? "✉️ Your message selected" : "📨 Their message selected") : "Long-press / right-click a message"}</p>
@@ -143,11 +144,12 @@ function ChatThread() {
       {showProfile ? (
         <div className="max-h-[45vh] overflow-y-auto border-b border-border bg-card p-4">
           <div className="flex flex-col items-center text-center">
-            {otherPhoto ? <img src={otherPhoto} alt="" className="size-24 rounded-full object-cover ring-4 ring-accent/20" /> : <span className="flex size-24 items-center justify-center rounded-full bg-accent/15 font-display text-3xl font-bold text-accent-deep">{otherInitial}</span>}
+            {otherPhoto ? <img src={otherPhoto} alt="" onClick={() => setFullPhoto(otherPhoto)} className="size-24 cursor-pointer rounded-full object-cover ring-4 ring-accent/20" /> : <span className="flex size-24 items-center justify-center rounded-full bg-accent/15 font-display text-3xl font-bold text-accent-deep">{otherInitial}</span>}
             <p className="mt-2 font-display text-lg font-bold">{otherName}</p>
             {vendor && !iAmVendor ? <p className="text-xs text-muted-foreground">{vendor.market_name || "Soko47 trader"} · ⭐ {Number(vendor.rating_count) > 0 ? (Number(vendor.rating_sum) / Number(vendor.rating_count)).toFixed(1) : "New"}</p> : null}
             {vendor && iAmVendor ? <p className="text-xs text-muted-foreground">Your customer</p> : null}
             {vendor && !iAmVendor ? <a href={"/shop/" + vendor.slug} className="mt-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">Visit shop</a> : null}
+            <Link to="/profile" className="mt-2 rounded-xl border border-border px-4 py-2 text-sm font-semibold">✏️ Edit my profile</Link>
           </div>
           <p className="mt-4 text-xs font-bold uppercase tracking-wide text-muted-foreground">Media in this chat</p>
           <div className="mt-2 grid grid-cols-3 gap-2">
@@ -168,7 +170,7 @@ function ChatThread() {
           return (
             <div key={m.id} className={wrap}>
               <div onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setSelectedId(m.id); if (navigator.vibrate) navigator.vibrate(40); }} onTouchStart={() => { (window as any).__lp = setTimeout(() => { setSelectedId(m.id); if (navigator.vibrate) navigator.vibrate(40); }, 450); }} onTouchEnd={() => clearTimeout((window as any).__lp)} onTouchMove={() => clearTimeout((window as any).__lp)} className={"select-none rounded-xl px-3 py-2 text-sm shadow-sm " + bubbleBg + " " + ring} style={{ WebkitTouchCallout: "none", userSelect: "none" } as any}>
-                {m.attachment_url && m.attachment_type === "image" ? <img src={m.attachment_url} alt="" className="mb-1 max-h-64 rounded-lg" /> : null}
+                {m.attachment_url && m.attachment_type === "image" ? <img src={m.attachment_url} alt="" onClick={(e) => { e.stopPropagation(); setFullPhoto(m.attachment_url); }} className="mb-1 max-h-64 cursor-pointer rounded-lg" /> : null}
                 {m.attachment_url && m.attachment_type === "video" ? <video src={m.attachment_url} controls className="mb-1 max-h-64 rounded-lg" /> : null}
                 <p>{m.body}</p>
                 <div className="mt-1 flex items-center justify-end gap-1">
@@ -193,6 +195,13 @@ function ChatThread() {
           <Button onClick={send} className="size-11 shrink-0 rounded-full bg-[#25D366] p-0 hover:bg-[#1ebe5b]"><Send className="size-5" /></Button>
         </div>
       </div>
+    </div>
+      {fullPhoto ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-4" onClick={() => setFullPhoto(null)}>
+          <img src={fullPhoto} alt="" className="max-h-full max-w-full rounded-xl object-contain" />
+          <button className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white"><X className="size-6" /></button>
+        </div>
+      ) : null}
     </div>
   );
 }

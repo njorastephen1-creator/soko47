@@ -11,6 +11,8 @@ import { useSession } from "@/lib/use-session";
 import { formatKes } from "@/lib/cart";
 import { getCounty } from "@/data/markets";
 import { Button } from "@/components/ui/button";
+import { ImageUpload } from "@/components/image-upload";
+import { Textarea } from "@/components/ui/textarea";
 import { Stars, ratingOf } from "@/components/reviews";
 export const Route = createFileRoute("/_authenticated/vendor")({ component: VendorDashboard });
 function VendorDashboard() {
@@ -44,6 +46,18 @@ function VendorDashboard() {
   const [prodFilter, setProdFilter] = useState("all");
   const [prodSearch, setProdSearch] = useState("");
   const [offers, setOffers] = useState<any>({});
+  const [np, setNp] = useState<any>({ title: "", price: "", stock: "", category: "produce", unit: "piece", image: "", desc: "" });
+  const addProduct = async () => {
+    if (!vendor) return;
+    if (np.title.trim().length < 2) return toast.error("Give the product a name");
+    const price = Number(np.price);
+    if (!price || price <= 0) return toast.error("Set a selling price");
+    const { error } = await supabase.from("products").insert({ vendor_id: vendor.id, title: np.title.trim(), price_kes: price, stock: Number(np.stock) || 0, category_slug: np.category, unit: np.unit || "piece", image_url: np.image || null, description: np.desc.trim() || null, is_active: true });
+    if (error) return toast.error(error.message);
+    setNp({ title: "", price: "", stock: "", category: "produce", unit: "piece", image: "", desc: "" });
+    qc.invalidateQueries();
+    toast.success("Product live on the market!");
+  };
   const [rails, setRails] = useState<any>(null);
   const rr = rails || (vendor ? { phone: vendor.pay_phone || "", till: vendor.till_number || "", pub: vendor.intasend_publishable || "", s47: !!vendor.soko47_pay } : null);
   const saveRails = async () => {
@@ -219,6 +233,26 @@ function VendorDashboard() {
             </div>
           ))}
         </div>
+      </div>
+      <div className="mt-6 rounded-3xl border border-accent/40 bg-accent/10 p-6">
+        <h2 className="font-display text-xl font-bold">➕ Add a product</h2>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <div><Label>Product name</Label><Input value={np.title} onChange={(e) => setNp({ ...np, title: e.target.value })} placeholder="e.g. Fresh tomatoes (kiondo)" /></div>
+          <div><Label>Price (KSh)</Label><Input type="number" value={np.price} onChange={(e) => setNp({ ...np, price: e.target.value })} placeholder="250" /></div>
+          <div><Label>Stock</Label><Input type="number" value={np.stock} onChange={(e) => setNp({ ...np, stock: e.target.value })} placeholder="40" /></div>
+          <div><Label>Category</Label>
+            <select className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm" value={np.category} onChange={(e) => setNp({ ...np, category: e.target.value })}>
+              <option value="produce">Fresh Produce</option>
+              <option value="electronics">Electronics</option>
+              <option value="fashion">Fashion</option>
+              <option value="household">Household</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div className="sm:col-span-2"><Label>Photo</Label><ImageUpload value={np.image} onChange={(url: string) => setNp({ ...np, image: url })} /></div>
+          <div className="sm:col-span-2"><Label>Description (optional)</Label><Textarea value={np.desc} onChange={(e) => setNp({ ...np, desc: e.target.value })} rows={2} placeholder="Size, quality, where it comes from..." /></div>
+        </div>
+        <Button className="mt-3" onClick={addProduct}>Put on the market</Button>
       </div>
       <div className="mt-6 rounded-3xl border border-border bg-card p-6">
         <div className="flex flex-wrap items-center justify-between gap-2">

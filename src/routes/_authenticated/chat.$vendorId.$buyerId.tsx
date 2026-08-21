@@ -16,6 +16,7 @@ function ChatThread() {
   const [attach, setAttach] = useState<{ url: string; type: string } | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [showProfile, setShowProfile] = useState(false);
   const endRef = useRef<HTMLDivElement | null>(null);
   const { data: msgs } = useQuery({
     queryKey: ["thread", vendorId, buyerId],
@@ -27,7 +28,7 @@ function ChatThread() {
   const { data: vendor } = useQuery({
     queryKey: ["chat-vendor", vendorId],
     queryFn: async () => {
-      const { data } = await supabase.from("vendors").select("shop_name, user_id, profile_image_url").eq("id", vendorId).maybeSingle();
+      const { data } = await supabase.from("vendors").select("shop_name, user_id, profile_image_url, slug, market_name, county_slug, rating_sum, rating_count").eq("id", vendorId).maybeSingle();
       return data;
     },
   });
@@ -91,6 +92,13 @@ function ChatThread() {
     document.body.appendChild(a); a.click(); a.remove();
     setSelectedId(null);
   };
+  const clearChat = async () => {
+    if (!window.confirm("Clear ALL messages in this chat for both sides?")) return;
+    await supabase.from("messages").delete().eq("vendor_id", vendorId).eq("buyer_id", buyerId);
+    setShowProfile(false);
+    qc.invalidateQueries();
+    toast.success("Chat cleared");
+  };
   const doCopy = () => {
     if (!selectedMsg) return;
     navigator.clipboard.writeText(selectedMsg.body);
@@ -100,8 +108,8 @@ function ChatThread() {
   return (
     <div className="mx-auto flex max-w-2xl flex-col md:px-4 md:pt-6" style={{ height: "94vh" }} onClick={() => setSelectedId(null)}>
       <div className={"flex items-center gap-3 rounded-t-2xl p-3 text-white " + (selectedMsg ? "bg-[#202c33]" : "bg-[#075E54]")}>
-        {otherPhoto ? <img src={otherPhoto} alt="" className="size-10 rounded-full object-cover" /> : <span className="flex size-10 items-center justify-center rounded-full bg-white/20 font-display font-bold">{otherInitial}</span>}
-        <div className="flex-1">
+        {otherPhoto ? <img src={otherPhoto} alt="" onClick={() => setShowProfile(!showProfile)} className="size-10 cursor-pointer rounded-full object-cover" /> : <span onClick={() => setShowProfile(!showProfile)} className="flex size-10 cursor-pointer items-center justify-center rounded-full bg-white/20 font-display font-bold">{otherInitial}</span>}
+        <div className="flex-1 cursor-pointer" onClick={() => setShowProfile(!showProfile)}>
           <p className="font-semibold">{otherName}</p>
           <p className="text-[11px] opacity-80">{selectedMsg ? (isMine ? "✉️ Your message selected" : "📨 Their message selected") : "Long-press / right-click a message"}</p>
         </div>
@@ -117,6 +125,25 @@ function ChatThread() {
           <div className="text-xs opacity-70">💬</div>
         )}
       </div>
+      {showProfile ? (
+        <div className="max-h-[45vh] overflow-y-auto border-b border-border bg-card p-4">
+          <div className="flex flex-col items-center text-center">
+            {otherPhoto ? <img src={otherPhoto} alt="" className="size-24 rounded-full object-cover ring-4 ring-accent/20" /> : <span className="flex size-24 items-center justify-center rounded-full bg-accent/15 font-display text-3xl font-bold text-accent-deep">{otherInitial}</span>}
+            <p className="mt-2 font-display text-lg font-bold">{otherName}</p>
+            {vendor && !iAmVendor ? <p className="text-xs text-muted-foreground">{vendor.market_name || "Soko47 trader"} · ⭐ {Number(vendor.rating_count) > 0 ? (Number(vendor.rating_sum) / Number(vendor.rating_count)).toFixed(1) : "New"}</p> : null}
+            {vendor && iAmVendor ? <p className="text-xs text-muted-foreground">Your customer</p> : null}
+            {vendor && !iAmVendor ? <a href={"/shop/" + vendor.slug} className="mt-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">Visit shop</a> : null}
+          </div>
+          <p className="mt-4 text-xs font-bold uppercase tracking-wide text-muted-foreground">Media in this chat</p>
+          <div className="mt-2 grid grid-cols-3 gap-2">
+            {(msgs || []).filter((m: any) => m.attachment_url).map((m: any) => (
+              m.attachment_type === "video" ? <video key={m.id} src={m.attachment_url} className="aspect-square w-full rounded-lg object-cover" /> : <a key={m.id} href={m.attachment_url} target="_blank" rel="noreferrer"><img src={m.attachment_url} alt="" className="aspect-square w-full rounded-lg object-cover" /></a>
+            ))}
+            {(msgs || []).filter((m: any) => m.attachment_url).length === 0 && <p className="col-span-3 text-xs text-muted-foreground">No media shared yet.</p>}
+          </div>
+          <button onClick={clearChat} className="mt-4 w-full rounded-xl border border-destructive/40 py-2 text-sm font-semibold text-destructive">🚫 Clear chat</button>
+        </div>
+      ) : null}
       <div className="flex-1 space-y-2 overflow-y-auto p-4" style={{ backgroundColor: "#efeae2", backgroundImage: "radial-gradient(#d8d2c6 1px, transparent 1px)", backgroundSize: "18px 18px" }}>
         {(msgs || []).map((m: any) => {
           const mine = m.sender_id === myId;

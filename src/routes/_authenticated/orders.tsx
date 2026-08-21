@@ -38,7 +38,7 @@ function Orders() {
   if (!orders) return <p className="py-16 text-center text-muted-foreground">Loading your orders...</p>;
   return (
     <div className="mx-auto max-w-3xl px-4 pb-28 pt-8 md:pb-8">
-      <h1 className="font-display text-3xl font-bold">My orders</h1>
+      <div className="flex items-center justify-between gap-2"><h1 className="font-display text-3xl font-bold">My orders</h1><Button asChild size="sm" variant="outline"><Link to="/profile">👤 My profile</Link></Button></div>
       <div className="mt-3 flex flex-wrap gap-2">{["all", "pending", "fulfilled", "cancelled"].map((f) => (<button key={f} onClick={() => setOrdFilter(f)} className={"rounded-full px-3 py-1 text-xs font-semibold capitalize " + (ordFilter === f ? "bg-primary text-primary-foreground" : "bg-secondary")}>{f}</button>))}</div>
       <div className="mt-6 space-y-4">
         {orders.length === 0 && <p className="text-sm text-muted-foreground">No orders yet - go find something nice.</p>}

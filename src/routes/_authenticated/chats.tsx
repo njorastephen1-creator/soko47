@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/use-session";
+import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/_authenticated/chats")({ component: ChatsInbox });
 function ChatsInbox() {
   const { session } = useSession();
@@ -47,7 +48,7 @@ function ChatsInbox() {
   const list = Object.values(threads).sort((a: any, b: any) => new Date(b.lastAt).getTime() - new Date(a.lastAt).getTime());
   return (
     <div className="mx-auto max-w-2xl px-4 pb-28 pt-8 md:pb-8">
-      <h1 className="flex items-center gap-2 font-display text-3xl font-bold"><MessageCircle className="size-7 text-accent" /> Chats</h1>
+      <div className="flex items-center justify-between gap-2"><h1 className="flex items-center gap-2 font-display text-3xl font-bold"><MessageCircle className="size-7 text-accent" /> Chats</h1><Button asChild size="sm" variant="outline"><Link to="/profile">👤 My profile</Link></Button></div>
       <div className="mt-6 space-y-2">
         {list.length === 0 && <p className="text-sm text-muted-foreground">No conversations yet.</p>}
         {list.map((t: any) => {

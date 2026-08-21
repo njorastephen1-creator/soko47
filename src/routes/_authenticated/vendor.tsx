@@ -154,6 +154,7 @@ function VendorDashboard() {
             <Button asChild variant="outline" size="sm"><Link to="/sell"><Plus className="size-4" /> Add product</Link></Button>
             <Button asChild size="sm"><Link to="/pos">POS & Receipts</Link></Button>
             {vendor.subscription_plan === "pro" ? <Button asChild size="sm" variant="outline"><Link to="/pro">Pro Studio</Link></Button> : null}
+            <Button asChild size="sm" variant="outline"><Link to="/chats">Chats</Link></Button>
           </div>
         </div>
         <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -197,13 +198,15 @@ function VendorDashboard() {
               </div>
               <p className="mt-1 text-sm font-semibold">{g.buyer_name} · <a className="underline" href={"tel:" + g.buyer_phone}>{g.buyer_phone}</a></p>
               <p className="text-xs text-muted-foreground">{g.delivery_location || "Pickup at stall"}</p>
+              {g.delivery_status && g.delivery_status !== "none" ? <p className="text-xs font-semibold text-accent-deep">🛵 Delivery: {g.delivery_status}</p> : null}
               <div className="mt-2 space-y-1 text-sm">
                 {g.items.map((i: any, x: number) => (<div key={x} className="flex justify-between"><span>{i.title} x{i.qty}</span><span>{formatKes(i.price * i.qty)}</span></div>))}
               </div>
               <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
                 <p className="font-semibold">{formatKes(g.total)}</p>
                 {g.status === "pending" ? (
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
+                    <Button asChild size="sm" variant="outline"><Link to="/chat/$vendorId/$buyerId" params={{ vendorId: vendor.id, buyerId: g.buyer_id }}>💬 Chat</Link></Button>
                     {g.payment_status !== "paid" && <Button size="sm" variant="outline" onClick={() => markStatus(g.id, { payment_status: "paid" })}>Mark paid</Button>}
                     <Button size="sm" onClick={() => markStatus(g.id, { status: "fulfilled" })}>Fulfill</Button>
                   </div>

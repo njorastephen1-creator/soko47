@@ -58,7 +58,9 @@ function Orders() {
                 {lines.map((i: any, x: number) => (<div key={x} className="flex justify-between"><span>{i.title} × {i.quantity}</span><span>{formatKes(Number(i.unit_price_kes) * i.quantity)}</span></div>))}
               </div>
               <div className="mt-2 flex justify-between font-semibold"><span>Total</span><span>{formatKes(Number(o.total_kes))}</span></div>
+              {o.delivery_status && o.delivery_status !== "none" ? <p className="mt-1 text-xs font-semibold text-accent-deep">🛵 Delivery: {o.delivery_status}</p> : null}
               <div className="mt-3 flex flex-wrap gap-2">
+                {lines[0] && session ? <Button asChild size="sm" variant="outline"><Link to="/chat/$vendorId/$buyerId" params={{ vendorId: lines[0].vendor_id, buyerId: session.user.id }}><MessageCircle className="size-4" /> Chat</Link></Button> : null}
                 <Button asChild size="sm" variant="outline"><Link to="/receipt/$id" params={{ id: o.id }}><ReceiptText className="size-4" /> Receipt</Link></Button>
                 {deletable ? <Button size="sm" variant="outline" className="text-destructive" onClick={() => remove(o.id)}><Trash2 className="size-4" /> Delete order</Button> : null}
               </div>

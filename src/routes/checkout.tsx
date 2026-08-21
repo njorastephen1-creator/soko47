@@ -15,6 +15,7 @@ function Checkout() {
   const navigate = useNavigate();
   const [form, setForm] = useState({ buyer_name: "", buyer_phone: "", delivery_location: "", note: "" });
   const [saving, setSaving] = useState(false);
+  const [needRider, setNeedRider] = useState(false);
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (form.buyer_name.trim().length < 2) return toast.error("Enter your name");
@@ -22,7 +23,7 @@ function Checkout() {
     if (form.delivery_location.trim().length < 3) return toast.error("Where should the goods go?");
     if (!session) { toast.error("Please sign in to place an order"); navigate({ to: "/auth" }); return; }
     setSaving(true);
-    const { data: order, error } = await supabase.from("orders").insert({ buyer_id: session.user.id, buyer_name: form.buyer_name.trim(), buyer_phone: form.buyer_phone.trim(), delivery_location: form.delivery_location.trim(), note: form.note.trim() || null, total_kes: total }).select().single();
+    const { data: order, error } = await supabase.from("orders").insert({ buyer_id: session.user.id, buyer_name: form.buyer_name.trim(), buyer_phone: form.buyer_phone.trim(), delivery_location: form.delivery_location.trim(), note: form.note.trim() || null, total_kes: total, delivery_fee_kes: needRider ? 150 : 0, delivery_status: needRider ? "requested" : "none" }).select().single();
     if (error || !order) { setSaving(false); toast.error(error?.message ?? "Could not place the order"); return; }
     const { error: itemsError } = await supabase.from("order_items").insert(items.map((i) => ({ order_id: order.id, product_id: i.productId, vendor_id: i.vendorId, title: i.title, unit_price_kes: i.price, quantity: i.quantity })));
     setSaving(false);
@@ -51,6 +52,7 @@ function Checkout() {
         {!loading && !session && (
           <p className="mt-4 rounded-md bg-secondary p-3 text-sm">You need an account to place an order. <Link to="/auth" className="font-medium text-accent-deep underline">Sign in or create one</Link>.</p>
         )}
+        <label className="mt-4 flex items-center gap-2 rounded-md bg-secondary p-3 text-sm font-medium"><input type="checkbox" checked={needRider} onChange={(e) => setNeedRider(e.target.checked)} /> 🛵 I need a Soko47 rider (+KSh 150)</label>
         <Button type="submit" size="lg" className="mt-6 w-full" disabled={saving}>{saving ? "Placing order..." : "Place order · " + formatKes(total)}</Button>
         <p className="mt-3 text-xs text-muted-foreground">Payment is agreed directly with each trader (M-Pesa on delivery or at the stall).</p>
       </form>

@@ -72,6 +72,7 @@ function PayHub() {
           await supabase.from("orders").update({ payment_status: "paid" }).eq("id", id);
           qc.invalidateQueries();
           toast.success("Payment received!");
+          if (g.v.pay_phone) fetch("/api/sms", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ phone: g.v.pay_phone, message: "Soko47: paid order " + id.slice(0, 6) + " worth " + formatKes(g.total) + " from " + order.buyer_name }) }).catch(() => {});
           if (g.v.pay_phone) await doPayout(g);
           setBusy(null);
           return;

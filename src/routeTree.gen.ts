@@ -18,10 +18,12 @@ import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as SellRouteImport } from './routes/sell'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedChatsRouteImport } from './routes/_authenticated/chats'
 import { Route as AuthenticatedHelpRouteImport } from './routes/_authenticated/help'
 import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated/orders'
 import { Route as AuthenticatedPosRouteImport } from './routes/_authenticated/pos'
 import { Route as AuthenticatedProRouteImport } from './routes/_authenticated/pro'
+import { Route as AuthenticatedRiderRouteImport } from './routes/_authenticated/rider'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedVendorRouteImport } from './routes/_authenticated/vendor'
 import { Route as MarketsIndexRouteImport } from './routes/markets.index'
@@ -31,6 +33,7 @@ import { Route as ProductIdRouteImport } from './routes/product.$id'
 import { Route as ShopSlugRouteImport } from './routes/shop.$slug'
 import { Route as AuthenticatedEnrichIdRouteImport } from './routes/_authenticated/enrich.$id'
 import { Route as AuthenticatedReceiptIdRouteImport } from './routes/_authenticated/receipt.$id'
+import { Route as AuthenticatedChatVendorIdBuyerIdRouteImport } from './routes/_authenticated/chat.$vendorId.$buyerId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -76,6 +79,11 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedChatsRoute = AuthenticatedChatsRouteImport.update({
+  id: '/chats',
+  path: '/chats',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedHelpRoute = AuthenticatedHelpRouteImport.update({
   id: '/help',
   path: '/help',
@@ -94,6 +102,11 @@ const AuthenticatedPosRoute = AuthenticatedPosRouteImport.update({
 const AuthenticatedProRoute = AuthenticatedProRouteImport.update({
   id: '/pro',
   path: '/pro',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedRiderRoute = AuthenticatedRiderRouteImport.update({
+  id: '/rider',
+  path: '/rider',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
@@ -141,6 +154,12 @@ const AuthenticatedReceiptIdRoute = AuthenticatedReceiptIdRouteImport.update({
   path: '/receipt/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedChatVendorIdBuyerIdRoute =
+  AuthenticatedChatVendorIdBuyerIdRouteImport.update({
+    id: '/chat/$vendorId/$buyerId',
+    path: '/chat/$vendorId/$buyerId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -151,10 +170,12 @@ export interface FileRoutesByFullPath {
   '/sell': typeof SellRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/chats': typeof AuthenticatedChatsRoute
   '/help': typeof AuthenticatedHelpRoute
   '/orders': typeof AuthenticatedOrdersRoute
   '/pos': typeof AuthenticatedPosRoute
   '/pro': typeof AuthenticatedProRoute
+  '/rider': typeof AuthenticatedRiderRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/vendor': typeof AuthenticatedVendorRoute
   '/markets/$county': typeof MarketsCountyRoute
@@ -164,6 +185,7 @@ export interface FileRoutesByFullPath {
   '/markets/': typeof MarketsIndexRoute
   '/enrich/$id': typeof AuthenticatedEnrichIdRoute
   '/receipt/$id': typeof AuthenticatedReceiptIdRoute
+  '/chat/$vendorId/$buyerId': typeof AuthenticatedChatVendorIdBuyerIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -174,10 +196,12 @@ export interface FileRoutesByTo {
   '/sell': typeof SellRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/chats': typeof AuthenticatedChatsRoute
   '/help': typeof AuthenticatedHelpRoute
   '/orders': typeof AuthenticatedOrdersRoute
   '/pos': typeof AuthenticatedPosRoute
   '/pro': typeof AuthenticatedProRoute
+  '/rider': typeof AuthenticatedRiderRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/vendor': typeof AuthenticatedVendorRoute
   '/markets/$county': typeof MarketsCountyRoute
@@ -187,6 +211,7 @@ export interface FileRoutesByTo {
   '/markets': typeof MarketsIndexRoute
   '/enrich/$id': typeof AuthenticatedEnrichIdRoute
   '/receipt/$id': typeof AuthenticatedReceiptIdRoute
+  '/chat/$vendorId/$buyerId': typeof AuthenticatedChatVendorIdBuyerIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -199,10 +224,12 @@ export interface FileRoutesById {
   '/sell': typeof SellRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/chats': typeof AuthenticatedChatsRoute
   '/_authenticated/help': typeof AuthenticatedHelpRoute
   '/_authenticated/orders': typeof AuthenticatedOrdersRoute
   '/_authenticated/pos': typeof AuthenticatedPosRoute
   '/_authenticated/pro': typeof AuthenticatedProRoute
+  '/_authenticated/rider': typeof AuthenticatedRiderRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/vendor': typeof AuthenticatedVendorRoute
   '/markets/$county': typeof MarketsCountyRoute
@@ -212,6 +239,7 @@ export interface FileRoutesById {
   '/markets/': typeof MarketsIndexRoute
   '/_authenticated/enrich/$id': typeof AuthenticatedEnrichIdRoute
   '/_authenticated/receipt/$id': typeof AuthenticatedReceiptIdRoute
+  '/_authenticated/chat/$vendorId/$buyerId': typeof AuthenticatedChatVendorIdBuyerIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -224,10 +252,12 @@ export interface FileRouteTypes {
     | '/sell'
     | '/account'
     | '/admin'
+    | '/chats'
     | '/help'
     | '/orders'
     | '/pos'
     | '/pro'
+    | '/rider'
     | '/settings'
     | '/vendor'
     | '/markets/$county'
@@ -237,6 +267,7 @@ export interface FileRouteTypes {
     | '/markets/'
     | '/enrich/$id'
     | '/receipt/$id'
+    | '/chat/$vendorId/$buyerId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -247,10 +278,12 @@ export interface FileRouteTypes {
     | '/sell'
     | '/account'
     | '/admin'
+    | '/chats'
     | '/help'
     | '/orders'
     | '/pos'
     | '/pro'
+    | '/rider'
     | '/settings'
     | '/vendor'
     | '/markets/$county'
@@ -260,6 +293,7 @@ export interface FileRouteTypes {
     | '/markets'
     | '/enrich/$id'
     | '/receipt/$id'
+    | '/chat/$vendorId/$buyerId'
   id:
     | '__root__'
     | '/'
@@ -271,10 +305,12 @@ export interface FileRouteTypes {
     | '/sell'
     | '/_authenticated/account'
     | '/_authenticated/admin'
+    | '/_authenticated/chats'
     | '/_authenticated/help'
     | '/_authenticated/orders'
     | '/_authenticated/pos'
     | '/_authenticated/pro'
+    | '/_authenticated/rider'
     | '/_authenticated/settings'
     | '/_authenticated/vendor'
     | '/markets/$county'
@@ -284,6 +320,7 @@ export interface FileRouteTypes {
     | '/markets/'
     | '/_authenticated/enrich/$id'
     | '/_authenticated/receipt/$id'
+    | '/_authenticated/chat/$vendorId/$buyerId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -366,6 +403,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/chats': {
+      id: '/_authenticated/chats'
+      path: '/chats'
+      fullPath: '/chats'
+      preLoaderRoute: typeof AuthenticatedChatsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/help': {
       id: '/_authenticated/help'
       path: '/help'
@@ -392,6 +436,13 @@ declare module '@tanstack/react-router' {
       path: '/pro'
       fullPath: '/pro'
       preLoaderRoute: typeof AuthenticatedProRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/rider': {
+      id: '/_authenticated/rider'
+      path: '/rider'
+      fullPath: '/rider'
+      preLoaderRoute: typeof AuthenticatedRiderRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings': {
@@ -457,33 +508,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedReceiptIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/chat/$vendorId/$buyerId': {
+      id: '/_authenticated/chat/$vendorId/$buyerId'
+      path: '/chat/$vendorId/$buyerId'
+      fullPath: '/chat/$vendorId/$buyerId'
+      preLoaderRoute: typeof AuthenticatedChatVendorIdBuyerIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountRoute: typeof AuthenticatedAccountRoute
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedChatsRoute: typeof AuthenticatedChatsRoute
   AuthenticatedHelpRoute: typeof AuthenticatedHelpRoute
   AuthenticatedOrdersRoute: typeof AuthenticatedOrdersRoute
   AuthenticatedPosRoute: typeof AuthenticatedPosRoute
   AuthenticatedProRoute: typeof AuthenticatedProRoute
+  AuthenticatedRiderRoute: typeof AuthenticatedRiderRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedVendorRoute: typeof AuthenticatedVendorRoute
   AuthenticatedEnrichIdRoute: typeof AuthenticatedEnrichIdRoute
   AuthenticatedReceiptIdRoute: typeof AuthenticatedReceiptIdRoute
+  AuthenticatedChatVendorIdBuyerIdRoute: typeof AuthenticatedChatVendorIdBuyerIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountRoute: AuthenticatedAccountRoute,
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedChatsRoute: AuthenticatedChatsRoute,
   AuthenticatedHelpRoute: AuthenticatedHelpRoute,
   AuthenticatedOrdersRoute: AuthenticatedOrdersRoute,
   AuthenticatedPosRoute: AuthenticatedPosRoute,
   AuthenticatedProRoute: AuthenticatedProRoute,
+  AuthenticatedRiderRoute: AuthenticatedRiderRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedVendorRoute: AuthenticatedVendorRoute,
   AuthenticatedEnrichIdRoute: AuthenticatedEnrichIdRoute,
   AuthenticatedReceiptIdRoute: AuthenticatedReceiptIdRoute,
+  AuthenticatedChatVendorIdBuyerIdRoute: AuthenticatedChatVendorIdBuyerIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

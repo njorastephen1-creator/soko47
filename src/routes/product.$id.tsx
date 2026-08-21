@@ -108,6 +108,7 @@ function ProductPage() {
               {product.vendors.phone ? <a href={"tel:" + product.vendors.phone} className="flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-xs hover:bg-secondary"><Phone className="size-3.5" /> Call seller</a> : null}
               {product.vendors.whatsapp ? <a href={"https://wa.me/" + product.vendors.whatsapp} target="_blank" rel="noreferrer" className="flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs text-primary-foreground"><MessageCircle className="size-3.5" /> WhatsApp</a> : null}
               {product.vendors.pay_phone ? <button onClick={() => { navigator.clipboard.writeText(product.vendors.pay_phone); toast.success("M-Pesa number copied - pay " + product.vendors.shop_name + " directly"); }} className="flex items-center gap-1 rounded-md border border-accent bg-accent/10 px-3 py-1.5 text-xs font-semibold text-accent-deep">💳 M-Pesa: {product.vendors.pay_phone} (tap to copy)</button> : null}
+              {session ? <Link to="/chat/$vendorId/$buyerId" params={{ vendorId: product.vendors.id, buyerId: session.user.id }} className="flex items-center gap-1 rounded-md border border-border px-3 py-1.5 text-xs font-semibold hover:bg-secondary"><MessageCircle className="size-3.5" /> Chat</Link> : null}
               {isOwner ? <Link to="/enrich/$id" params={{ id: product.id }} className="flex items-center gap-1 rounded-md border border-accent bg-accent/10 px-3 py-1.5 text-xs font-semibold text-accent-deep">Add more info</Link> : null}
             </div>
           </div>

@@ -3,18 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import { MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/use-session";
+import { useMyVendor } from "@/lib/my-vendor";
 import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/_authenticated/chats")({ component: ChatsInbox });
 function ChatsInbox() {
   const { session } = useSession();
-  const { data: vendor } = useQuery({
-    queryKey: ["inbox-vendor", session ? session.user.id : "anon"],
-    enabled: !!session,
-    queryFn: async () => {
-      const { data } = await supabase.from("vendors").select("id, shop_name, profile_image_url, user_id").eq("user_id", session!.user.id).maybeSingle();
-      return data || null;
-    },
-  });
+  const { vendor } = useMyVendor();
   const { data: allMsgs } = useQuery({
     queryKey: ["inbox-msgs", vendor ? vendor.id : session ? session.user.id : "anon"],
     enabled: !!session,

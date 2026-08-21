@@ -8,6 +8,7 @@ import { stkPush, stkStatus } from "@/lib/mpesa";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/use-session";
+import { useMyVendor } from "@/lib/my-vendor";
 import { formatKes } from "@/lib/cart";
 import { getCounty } from "@/data/markets";
 import { Button } from "@/components/ui/button";
@@ -18,14 +19,7 @@ export const Route = createFileRoute("/_authenticated/vendor")({ component: Vend
 function VendorDashboard() {
   const { session } = useSession();
   const qc = useQueryClient();
-  const { data: vendor } = useQuery({
-    queryKey: ["my-vendor-dash", session ? session.user.id : "anon"],
-    enabled: !!session,
-    queryFn: async () => {
-      const { data } = await supabase.from("vendors").select("*").eq("user_id", session!.user.id).maybeSingle();
-      return data || null;
-    },
-  });
+  const { vendor, vendors } = useMyVendor();
   const { data: products } = useQuery({
     queryKey: ["vendor-products", vendor ? vendor.id : "none"],
     enabled: !!vendor,
@@ -57,6 +51,21 @@ function VendorDashboard() {
     setNp({ title: "", price: "", stock: "", category: "produce", unit: "piece", image: "", desc: "" });
     qc.invalidateQueries();
     toast.success("Product live on the market!");
+  };
+  const [newShop, setNewShop] = useState("");
+  const switchShop = async (id: string) => {
+    await supabase.from("user_profiles").upsert({ user_id: session.user.id, active_vendor_id: id });
+    qc.invalidateQueries();
+    toast.success("Switched shop - whole dashboard follows");
+  };
+  const openShop = async () => {
+    if (newShop.trim().length < 2) return toast.error("Name the new shop");
+    const { data, error } = await supabase.from("vendors").insert({ user_id: session.user.id, shop_name: newShop.trim(), slug: newShop.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-") + "-" + Date.now().toString(36), county_slug: vendor ? vendor.county_slug : "nairobi", market_name: vendor ? vendor.market_name : null, subscription_plan: "trial", status: "active" }).select().single();
+    if (error) return toast.error(error.message);
+    await supabase.from("user_profiles").upsert({ user_id: session.user.id, active_vendor_id: data.id });
+    setNewShop("");
+    qc.invalidateQueries();
+    toast.success("New shop opened - pick its plan!");
   };
   const [rails, setRails] = useState<any>(null);
   const rr = rails || (vendor ? { phone: vendor.pay_phone || "", till: vendor.till_number || "", pub: vendor.intasend_publishable || "", s47: !!vendor.soko47_pay } : null);
@@ -234,20 +243,31 @@ function VendorDashboard() {
           ))}
         </div>
       </div>
+      <div className="mt-6 rounded-3xl border border-border bg-card p-6">
+        <h2 className="font-display text-xl font-bold">🏪 My shops</h2>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {(vendors || []).map((s: any) => (
+            <button key={s.id} onClick={() => switchShop(s.id)} className={"rounded-full px-3 py-1.5 text-xs font-semibold " + (vendor && vendor.id === s.id ? "bg-primary text-primary-foreground" : "bg-secondary")}>{s.shop_name} · {s.subscription_plan || "trial"}</button>
+          ))}
+        </div>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <Input className="w-44" placeholder="New shop name" value={newShop} onChange={(e) => setNewShop(e.target.value)} />
+          <Button size="sm" onClick={openShop}>+ Open another shop</Button>
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">Each shop has its OWN subscription, products, chats & payments. Tap a pill to switch - the whole app follows.</p>
+      </div>
       <div className="mt-6 rounded-3xl border border-accent/40 bg-accent/10 p-6">
         <h2 className="font-display text-xl font-bold">➕ Add a product</h2>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <div><Label>Product name</Label><Input value={np.title} onChange={(e) => setNp({ ...np, title: e.target.value })} placeholder="e.g. Fresh tomatoes (kiondo)" /></div>
           <div><Label>Price (KSh)</Label><Input type="number" value={np.price} onChange={(e) => setNp({ ...np, price: e.target.value })} placeholder="250" /></div>
           <div><Label>Stock</Label><Input type="number" value={np.stock} onChange={(e) => setNp({ ...np, stock: e.target.value })} placeholder="40" /></div>
-          <div><Label>Category</Label>
-            <select className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm" value={np.category} onChange={(e) => setNp({ ...np, category: e.target.value })}>
-              <option value="produce">Fresh Produce</option>
-              <option value="electronics">Electronics</option>
-              <option value="fashion">Fashion</option>
-              <option value="household">Household</option>
-              <option value="other">Other</option>
-            </select>
+          <div className="sm:col-span-2"><Label>Category</Label>
+            <div className="mt-1 flex flex-wrap gap-2">
+              {[["produce", "Fresh Produce"], ["electronics", "Electronics"], ["fashion", "Fashion"], ["household", "Household"], ["other", "Other"]].map((c: any) => (
+                <button key={c[0]} type="button" onClick={() => setNp({ ...np, category: c[0] })} className={"rounded-full px-3 py-1.5 text-xs font-semibold " + (np.category === c[0] ? "bg-primary text-primary-foreground" : "bg-secondary")}>{c[1]}</button>
+              ))}
+            </div>
           </div>
           <div className="sm:col-span-2"><Label>Photo</Label><ImageUpload value={np.image} onChange={(url: string) => setNp({ ...np, image: url })} /></div>
           <div className="sm:col-span-2"><Label>Description (optional)</Label><Textarea value={np.desc} onChange={(e) => setNp({ ...np, desc: e.target.value })} rows={2} placeholder="Size, quality, where it comes from..." /></div>

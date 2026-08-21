@@ -3,16 +3,10 @@ import { useQuery } from "@tanstack/react-query";
 import { MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/use-session";
+import { useMyVendor } from "@/lib/my-vendor";
 export function ChatFab() {
   const { session } = useSession();
-  const { data: vendor } = useQuery({
-    queryKey: ["fab-vendor", session ? session.user.id : "anon"],
-    enabled: !!session,
-    queryFn: async () => {
-      const { data } = await supabase.from("vendors").select("id, user_id").eq("user_id", session!.user.id).maybeSingle();
-      return data || null;
-    },
-  });
+  const { vendor } = useMyVendor();
   const { data: unread } = useQuery({
     queryKey: ["fab-unread", session ? session.user.id : "anon", vendor ? vendor.id : "none"],
     enabled: !!session,

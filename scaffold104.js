@@ -1,4 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import fs from 'fs';
+let iu = fs.readFileSync('src/components/image-upload.tsx', 'utf8');
+let bucket = 'product-images';
+const bm = iu.match(/storage\.from\(["']([^"']+)["']\)/);
+if (bm) bucket = bm[1];
+fs.writeFileSync('src/routes/_authenticated/chat.$vendorId.$buyerId.tsx', `import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Copy, Download, Pencil, Send, Trash2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -7,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/use-session";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-export const Route = createFileRoute("/_authenticated/chat/$vendorId/$buyerId")({ component: ChatThread });
+export const Route = createFileRoute("/_authenticated/chat/\$vendorId/\$buyerId")({ component: ChatThread });
 function ChatThread() {
   const { vendorId, buyerId } = Route.useParams();
   const { session } = useSession();
@@ -67,9 +72,9 @@ function ChatThread() {
     if (!f) return;
     if (f.size > 8 * 1024 * 1024) return toast.error("Max 8MB");
     const path = "chat/" + Date.now() + "_" + f.name.replace(/[^a-zA-Z0-9.]+/g, "_");
-    const { error } = await supabase.storage.from("product-images").upload(path, f);
+    const { error } = await supabase.storage.from("${bucket}").upload(path, f);
     if (error) return toast.error(error.message);
-    const { data } = supabase.storage.from("product-images").getPublicUrl(path);
+    const { data } = supabase.storage.from("${bucket}").getPublicUrl(path);
     setAttach({ url: data.publicUrl, type: f.type.startsWith("video") ? "video" : "image" });
   };
   const send = async () => {
@@ -204,3 +209,5 @@ function ChatThread() {
     </div>
   );
 }
+`);
+console.log('DONE: chat file rewritten with fullPhoto inside container');

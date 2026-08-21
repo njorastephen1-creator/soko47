@@ -69,9 +69,9 @@ function PayHub() {
         const s = await stkStatus(invoice);
         const state = String((s.invoice && s.invoice.state) || s.state || "").toLowerCase();
         if (["complete", "completed", "paid", "success"].includes(state)) {
-          await supabase.from("orders").update({ payment_status: "paid", payment_ref: invoice, payment_method: "Soko47 Pay (auto-verified)" }).eq("id", id);
+          await supabase.from("orders").update({ payment_status: "paid", payment_ref: invoice, payment_method: "Soko47 Pay (auto-verified)", ...(order.delivery_status === "none" || !order.delivery_status ? { status: "fulfilled" } : {}) }).eq("id", id);
           qc.invalidateQueries();
-          toast.success("Payment received!");
+          toast.success(order.delivery_status && order.delivery_status !== "none" ? "Payment received - rider will deliver!" : "Payment received - auto-paid & auto-fulfilled!");
           if (g.v.pay_phone) fetch("/api/sms", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ phone: g.v.pay_phone, message: "Soko47: paid order " + id.slice(0, 6) + " worth " + formatKes(g.total) + " from " + order.buyer_name }) }).catch(() => {});
           if (g.v.pay_phone) await doPayout(g);
           setBusy(null);

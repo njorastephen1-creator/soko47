@@ -29,7 +29,7 @@ function Profile() {
     queryKey: ["my-profile", session ? session.user.id : "anon"],
     enabled: !!session,
     queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("*").eq("user_id", session!.user.id).maybeSingle();
+      const { data } = await supabase.from("user_profiles").select("*").eq("user_id", session!.user.id).maybeSingle();
       return data || null;
     },
   });
@@ -44,7 +44,7 @@ function Profile() {
       const { error } = await supabase.from("vendors").update({ display_name: curName.trim() || null, profile_image_url: curPhoto || null, auto_reply: curReply.trim() || null }).eq("id", vendor.id);
       if (error) return toast.error(error.message);
     }
-    const { error: e2 } = await supabase.from("profiles").upsert({ user_id: session.user.id, display_name: curName.trim() || null, photo_url: curPhoto || null });
+    const { error: e2 } = await supabase.from("user_profiles").upsert({ user_id: session.user.id, display_name: curName.trim() || null, photo_url: curPhoto || null });
     if (e2) return toast.error(e2.message);
     qc.invalidateQueries();
     toast.success("Profile saved - shows in all your chats");

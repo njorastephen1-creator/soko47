@@ -23,6 +23,7 @@ import { Route as AuthenticatedHelpRouteImport } from './routes/_authenticated/h
 import { Route as AuthenticatedOrdersRouteImport } from './routes/_authenticated/orders'
 import { Route as AuthenticatedPosRouteImport } from './routes/_authenticated/pos'
 import { Route as AuthenticatedProRouteImport } from './routes/_authenticated/pro'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedRiderRouteImport } from './routes/_authenticated/rider'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedVendorRouteImport } from './routes/_authenticated/vendor'
@@ -104,6 +105,11 @@ const AuthenticatedProRoute = AuthenticatedProRouteImport.update({
   path: '/pro',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedRiderRoute = AuthenticatedRiderRouteImport.update({
   id: '/rider',
   path: '/rider',
@@ -175,6 +181,7 @@ export interface FileRoutesByFullPath {
   '/orders': typeof AuthenticatedOrdersRoute
   '/pos': typeof AuthenticatedPosRoute
   '/pro': typeof AuthenticatedProRoute
+  '/profile': typeof AuthenticatedProfileRoute
   '/rider': typeof AuthenticatedRiderRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/vendor': typeof AuthenticatedVendorRoute
@@ -201,6 +208,7 @@ export interface FileRoutesByTo {
   '/orders': typeof AuthenticatedOrdersRoute
   '/pos': typeof AuthenticatedPosRoute
   '/pro': typeof AuthenticatedProRoute
+  '/profile': typeof AuthenticatedProfileRoute
   '/rider': typeof AuthenticatedRiderRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/vendor': typeof AuthenticatedVendorRoute
@@ -229,6 +237,7 @@ export interface FileRoutesById {
   '/_authenticated/orders': typeof AuthenticatedOrdersRoute
   '/_authenticated/pos': typeof AuthenticatedPosRoute
   '/_authenticated/pro': typeof AuthenticatedProRoute
+  '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/rider': typeof AuthenticatedRiderRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/vendor': typeof AuthenticatedVendorRoute
@@ -257,6 +266,7 @@ export interface FileRouteTypes {
     | '/orders'
     | '/pos'
     | '/pro'
+    | '/profile'
     | '/rider'
     | '/settings'
     | '/vendor'
@@ -283,6 +293,7 @@ export interface FileRouteTypes {
     | '/orders'
     | '/pos'
     | '/pro'
+    | '/profile'
     | '/rider'
     | '/settings'
     | '/vendor'
@@ -310,6 +321,7 @@ export interface FileRouteTypes {
     | '/_authenticated/orders'
     | '/_authenticated/pos'
     | '/_authenticated/pro'
+    | '/_authenticated/profile'
     | '/_authenticated/rider'
     | '/_authenticated/settings'
     | '/_authenticated/vendor'
@@ -438,6 +450,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/rider': {
       id: '/_authenticated/rider'
       path: '/rider'
@@ -526,6 +545,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOrdersRoute: typeof AuthenticatedOrdersRoute
   AuthenticatedPosRoute: typeof AuthenticatedPosRoute
   AuthenticatedProRoute: typeof AuthenticatedProRoute
+  AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedRiderRoute: typeof AuthenticatedRiderRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedVendorRoute: typeof AuthenticatedVendorRoute
@@ -542,6 +562,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOrdersRoute: AuthenticatedOrdersRoute,
   AuthenticatedPosRoute: AuthenticatedPosRoute,
   AuthenticatedProRoute: AuthenticatedProRoute,
+  AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedRiderRoute: AuthenticatedRiderRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedVendorRoute: AuthenticatedVendorRoute,

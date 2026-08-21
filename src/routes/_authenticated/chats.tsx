@@ -10,37 +10,64 @@ function ChatsInbox() {
     queryKey: ["inbox-vendor", session ? session.user.id : "anon"],
     enabled: !!session,
     queryFn: async () => {
-      const { data } = await supabase.from("vendors").select("id").eq("user_id", session!.user.id).maybeSingle();
+      const { data } = await supabase.from("vendors").select("id, shop_name, profile_image_url, user_id").eq("user_id", session!.user.id).maybeSingle();
       return data || null;
     },
   });
-  const { data: msgs } = useQuery({
-    queryKey: ["inbox-msgs", vendor ? vendor.id : "none"],
-    enabled: !!vendor,
+  const { data: allMsgs } = useQuery({
+    queryKey: ["inbox-msgs", vendor ? vendor.id : session ? session.user.id : "anon"],
+    enabled: !!session,
     queryFn: async () => {
-      const { data } = await supabase.from("messages").select("*").eq("vendor_id", vendor!.id).order("created_at", { ascending: false }).limit(200);
+      if (vendor) {
+        const { data } = await supabase.from("messages").select("*").eq("vendor_id", vendor.id).order("created_at", { ascending: false });
+        return data || [];
+      }
+      const { data } = await supabase.from("messages").select("*, vendors(shop_name, profile_image_url)").eq("buyer_id", session!.user.id).order("created_at", { ascending: false });
       return data || [];
     },
   });
-  const threads: any[] = [];
-  (msgs || []).forEach((m: any) => {
-    if (!threads.find((t) => t.buyer_id === m.buyer_id)) threads.push(m);
+  const threads: any = {};
+  (allMsgs || []).forEach((m: any) => {
+    const otherId = vendor ? m.sender_id : m.vendor_id;
+    if (!threads[otherId]) {
+      threads[otherId] = {
+        otherId,
+        vendorId: m.vendor_id,
+        buyerId: vendor ? m.buyer_id : session!.user.id,
+        name: vendor ? (m.sender_name || "Customer") : (m.vendors ? m.vendors.shop_name : "Trader"),
+        photo: vendor ? null : (m.vendors ? m.vendors.profile_image_url : null),
+        last: m.body,
+        lastAt: m.created_at,
+        unread: 0,
+      };
+    }
+    const myId = vendor ? vendor.user_id : session!.user.id;
+    if (m.sender_id !== myId && !m.read_at) threads[otherId].unread += 1;
   });
+  const list = Object.values(threads).sort((a: any, b: any) => new Date(b.lastAt).getTime() - new Date(a.lastAt).getTime());
   return (
     <div className="mx-auto max-w-2xl px-4 pb-28 pt-8 md:pb-8">
-      <h1 className="flex items-center gap-2 font-display text-3xl font-bold"><MessageCircle className="size-7 text-accent" /> Customer chats</h1>
+      <h1 className="flex items-center gap-2 font-display text-3xl font-bold"><MessageCircle className="size-7 text-accent" /> Chats</h1>
       <div className="mt-6 space-y-2">
-        {threads.length === 0 && <p className="text-sm text-muted-foreground">No conversations yet - buyers can chat you from any product page.</p>}
-        {threads.map((t: any) => (
-          <Link key={t.buyer_id} to="/chat/$vendorId/$buyerId" params={{ vendorId: t.vendor_id, buyerId: t.buyer_id }} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3 hover:bg-secondary">
-            <span className="flex size-10 items-center justify-center rounded-full bg-accent/15 font-display font-bold text-accent-deep">{(t.sender_name || "?").slice(0, 1).toUpperCase()}</span>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold">{t.sender_name || "Customer"}</p>
-              <p className="truncate text-xs text-muted-foreground">{t.body}</p>
-            </div>
-            <span className="text-[10px] text-muted-foreground">{new Date(t.created_at).toLocaleDateString()}</span>
-          </Link>
-        ))}
+        {list.length === 0 && <p className="text-sm text-muted-foreground">No conversations yet.</p>}
+        {list.map((t: any) => {
+          const initial = (t.name || "?").slice(0, 1).toUpperCase();
+          return (
+            <Link key={t.otherId} to={"/chat/" + t.vendorId + "/" + t.buyerId} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3 hover:bg-secondary">
+              {t.photo ? <img src={t.photo} alt="" className="size-12 rounded-full object-cover" /> : <span className="flex size-12 items-center justify-center rounded-full bg-accent/15 font-display font-bold text-accent-deep">{initial}</span>}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="truncate font-semibold">{t.name}</p>
+                  <p className="shrink-0 text-[11px] text-muted-foreground">{new Date(t.lastAt).toLocaleDateString()}</p>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="truncate text-sm text-muted-foreground">{t.last}</p>
+                  {t.unread > 0 ? <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#25D366] text-[11px] font-bold text-white">{t.unread}</span> : null}
+                </div>
+              </div>
+            </Link>
+          );
+        })}
       </div>
     </div>
   );

@@ -155,6 +155,7 @@ function VendorDashboard() {
             <Button asChild size="sm"><Link to="/pos">POS & Receipts</Link></Button>
             {vendor.subscription_plan === "pro" ? <Button asChild size="sm" variant="outline"><Link to="/pro">Pro Studio</Link></Button> : null}
             <Button asChild size="sm" variant="outline"><Link to="/chats">Chats</Link></Button>
+            <Button asChild size="sm" variant="outline"><Link to="/profile">My profile</Link></Button>
           </div>
         </div>
         <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">

@@ -1,4 +1,33 @@
-import { createFileRoute } from "@tanstack/react-router";
+import fs from 'fs';
+let iu = fs.readFileSync('src/components/image-upload.tsx', 'utf8');
+let bucket = 'product-images';
+const bm = iu.match(/storage\.from\(["']([^"']+)["']\)/);
+if (bm) bucket = bm[1];
+console.log('Using bucket:', bucket);
+fs.writeFileSync('src/components/chat-fab.tsx', `import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { MessageCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useSession } from "@/lib/use-session";
+export function ChatFab() {
+  const { session } = useSession();
+  const { data: vendor } = useQuery({
+    queryKey: ["fab-vendor", session ? session.user.id : "anon"],
+    enabled: !!session,
+    queryFn: async () => {
+      const { data } = await supabase.from("vendors").select("id").eq("user_id", session!.user.id).maybeSingle();
+      return data || null;
+    },
+  });
+  if (!session) return null;
+  return (
+    <Link to={vendor ? "/chats" : "/orders"} aria-label="Chats" className="fixed bottom-24 right-4 z-50 flex size-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-2xl transition hover:scale-105 md:bottom-8 md:right-8">
+      <MessageCircle className="size-6" />
+    </Link>
+  );
+}
+`);
+fs.writeFileSync('src/routes/_authenticated/chat.$vendorId.$buyerId.tsx', `import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Paperclip, Send, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -39,9 +68,9 @@ function ChatThread() {
     if (!f) return;
     if (f.size > 8 * 1024 * 1024) return toast.error("Max 8MB - short videos & photos only");
     const path = "chat/" + Date.now() + "_" + f.name.replace(/[^a-zA-Z0-9.]+/g, "_");
-    const { error } = await supabase.storage.from("product-images").upload(path, f);
+    const { error } = await supabase.storage.from("${bucket}").upload(path, f);
     if (error) return toast.error(error.message);
-    const { data } = supabase.storage.from("product-images").getPublicUrl(path);
+    const { data } = supabase.storage.from("${bucket}").getPublicUrl(path);
     setAttach({ url: data.publicUrl, type: f.type.startsWith("video") ? "video" : "image" });
     toast.success("Attached - now hit send");
   };
@@ -89,3 +118,12 @@ function ChatThread() {
     </div>
   );
 }
+`);
+let chrome = fs.readFileSync('src/components/site-chrome.tsx', 'utf8');
+if (!chrome.includes('ChatFab')) {
+  chrome = chrome.split('import { HomeAds } from "@/components/home-ads";').join('import { HomeAds } from "@/components/home-ads";\nimport { ChatFab } from "@/components/chat-fab";');
+  chrome = chrome.split('</header>').join('<ChatFab /></header>');
+  fs.writeFileSync('src/components/site-chrome.tsx', chrome);
+  console.log('Chat FAB visible everywhere');
+}
+console.log('DONE: WhatsApp-style chat');

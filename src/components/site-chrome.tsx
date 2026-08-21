@@ -10,6 +10,7 @@ import { useSession } from "@/lib/use-session";
 import { isAdminEmail } from "@/lib/admin";
 import { useLive } from "@/lib/live";
 import { HomeAds } from "@/components/home-ads";
+import { ChatFab } from "@/components/chat-fab";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 function NotificationsBell() {
@@ -161,7 +162,7 @@ export function SiteHeader() {
             <Link to="/sell" className="whitespace-nowrap font-semibold text-accent hover:underline">Open a shop</Link>
           </div>
         </nav>
-      {typeof window !== "undefined" && window.location.pathname === "/" ? <HomeAds /> : null}</header>
+      {typeof window !== "undefined" && window.location.pathname === "/" ? <HomeAds /> : null}<ChatFab /></header>
       {open && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div className="absolute inset-0 bg-black/50" onClick={() => setOpen(false)} />

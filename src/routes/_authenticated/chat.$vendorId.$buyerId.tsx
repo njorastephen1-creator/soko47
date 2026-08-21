@@ -109,7 +109,7 @@ function ChatThread() {
                   <span className="text-[10px] text-muted-foreground">{new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
                 </div>
               </div>
-              <button onClick={() => setMenuId(menuId === m.id ? null : m.id)} className={"absolute -top-2 rounded-full bg-white p-1 shadow " + (m.sender_id === session.user.id ? "-left-2" : "-right-2")}}>
+              <button onClick={() => setMenuId(menuId === m.id ? null : m.id)} className={"absolute -top-2 rounded-full bg-white p-1 shadow " + (m.sender_id === session.user.id ? "-left-2" : "-right-2")}>
                 <MoreVertical className="size-4 text-muted-foreground" />
               </button>
               {menuId === m.id ? (

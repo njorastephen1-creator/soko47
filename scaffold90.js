@@ -1,4 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import fs from 'fs';
+let iu = fs.readFileSync('src/components/image-upload.tsx', 'utf8');
+let bucket = 'product-images';
+const bm = iu.match(/storage\.from\(["']([^"']+)["']\)/);
+if (bm) bucket = bm[1];
+fs.writeFileSync('src/routes/_authenticated/chat.$vendorId.$buyerId.tsx', `import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Download, Paperclip, Pencil, Send, Trash2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -40,9 +45,9 @@ function ChatThread() {
     if (!f) return;
     if (f.size > 8 * 1024 * 1024) return toast.error("Max 8MB - short videos & photos only");
     const path = "chat/" + Date.now() + "_" + f.name.replace(/[^a-zA-Z0-9.]+/g, "_");
-    const { error } = await supabase.storage.from("product-images").upload(path, f);
+    const { error } = await supabase.storage.from("${bucket}").upload(path, f);
     if (error) return toast.error(error.message);
-    const { data } = supabase.storage.from("product-images").getPublicUrl(path);
+    const { data } = supabase.storage.from("${bucket}").getPublicUrl(path);
     setAttach({ url: data.publicUrl, type: f.type.startsWith("video") ? "video" : "image" });
     toast.success("Attached - now hit send");
   };
@@ -121,3 +126,5 @@ function ChatThread() {
     </div>
   );
 }
+`);
+console.log('DONE: edit/delete/download in chat');

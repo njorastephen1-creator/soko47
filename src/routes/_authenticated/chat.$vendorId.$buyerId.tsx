@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Download, Pencil, Send, Trash2, X } from "lucide-react";
+import { Copy, Download, Pencil, Send, Trash2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -91,16 +91,23 @@ function ChatThread() {
     document.body.appendChild(a); a.click(); a.remove();
     setSelectedId(null);
   };
+  const doCopy = () => {
+    if (!selectedMsg) return;
+    navigator.clipboard.writeText(selectedMsg.body);
+    toast.success("Message copied");
+    setSelectedId(null);
+  };
   return (
     <div className="mx-auto flex max-w-2xl flex-col md:px-4 md:pt-6" style={{ height: "94vh" }} onClick={() => setSelectedId(null)}>
-      <div className="flex items-center gap-3 rounded-t-2xl bg-[#075E54] p-3 text-white">
+      <div className={"flex items-center gap-3 rounded-t-2xl p-3 text-white " + (selectedMsg ? "bg-[#202c33]" : "bg-[#075E54]")}>
         {otherPhoto ? <img src={otherPhoto} alt="" className="size-10 rounded-full object-cover" /> : <span className="flex size-10 items-center justify-center rounded-full bg-white/20 font-display font-bold">{otherInitial}</span>}
         <div className="flex-1">
           <p className="font-semibold">{otherName}</p>
-          <p className="text-[11px] opacity-80">{selectedMsg ? (isMine ? "✉️ Your message selected" : "📨 Their message selected") : "Tap any message for options"}</p>
+          <p className="text-[11px] opacity-80">{selectedMsg ? (isMine ? "✉️ Your message selected" : "📨 Their message selected") : "Long-press / right-click a message"}</p>
         </div>
         {selectedMsg ? (
           <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+            <button onClick={doCopy} className="rounded-full p-2 hover:bg-white/10" title="Copy"><Copy className="size-5" /></button>
             {selectedMsg.attachment_url ? <button onClick={doDownload} className="rounded-full p-2 hover:bg-white/10" title="Download"><Download className="size-5" /></button> : null}
             {isMine ? <button onClick={doEdit} className="rounded-full p-2 hover:bg-white/10" title="Edit"><Pencil className="size-5" /></button> : null}
             {isMine ? <button onClick={doDelete} className="rounded-full p-2 hover:bg-white/10" title="Delete"><Trash2 className="size-5" /></button> : null}
@@ -118,7 +125,7 @@ function ChatThread() {
           const wrap = "flex " + (mine ? "justify-end" : "justify-start");
           return (
             <div key={m.id} className={wrap}>
-              <div onClick={(e) => { e.stopPropagation(); setSelectedId(selectedId === m.id ? null : m.id); }} className={"cursor-pointer rounded-xl px-3 py-2 text-sm shadow-sm " + bubbleBg + " " + ring}>
+              <div onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setSelectedId(m.id); if (navigator.vibrate) navigator.vibrate(40); }} onTouchStart={() => { (window as any).__lp = setTimeout(() => { setSelectedId(m.id); if (navigator.vibrate) navigator.vibrate(40); }, 450); }} onTouchEnd={() => clearTimeout((window as any).__lp)} onTouchMove={() => clearTimeout((window as any).__lp)} className={"select-none rounded-xl px-3 py-2 text-sm shadow-sm " + bubbleBg + " " + ring} style={{ WebkitTouchCallout: "none", userSelect: "none" } as any}>
                 {m.attachment_url && m.attachment_type === "image" ? <img src={m.attachment_url} alt="" className="mb-1 max-h-64 rounded-lg" /> : null}
                 {m.attachment_url && m.attachment_type === "video" ? <video src={m.attachment_url} controls className="mb-1 max-h-64 rounded-lg" /> : null}
                 <p>{m.body}</p>

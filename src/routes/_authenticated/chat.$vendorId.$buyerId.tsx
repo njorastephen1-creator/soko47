@@ -59,7 +59,7 @@ function ChatThread() {
   if (!session) return null;
   const myId = vendor ? vendor.user_id : session.user.id;
   const iAmVendor = vendor && vendor.user_id === session.user.id;
-  const otherName = iAmVendor ? (buyerProf && buyerProf.display_name ? buyerProf.display_name : "Customer") : (vendor ? (vendor.display_name || vendor.shop_name) : "Chat");
+  const otherName = iAmVendor ? (buyerProf && buyerProf.display_name ? buyerProf.display_name : (((msgs || []).find((m: any) => m.sender_id !== myId) || {}).sender_name || "Customer")) : (vendor ? (vendor.display_name || vendor.shop_name) : "Chat");
   const otherPhoto = iAmVendor ? (buyerProf ? buyerProf.photo_url : null) : (vendor ? vendor.profile_image_url : null);
   const otherInitial = otherName.slice(0, 1).toUpperCase();
   const onFile = async (e: any) => {

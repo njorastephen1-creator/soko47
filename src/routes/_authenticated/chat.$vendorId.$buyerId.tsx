@@ -28,8 +28,23 @@ function ChatThread() {
   const { data: vendor } = useQuery({
     queryKey: ["chat-vendor", vendorId],
     queryFn: async () => {
-      const { data } = await supabase.from("vendors").select("shop_name, user_id, profile_image_url, slug, market_name, county_slug, rating_sum, rating_count").eq("id", vendorId).maybeSingle();
+      const { data } = await supabase.from("vendors").select("shop_name, user_id, profile_image_url, slug, market_name, county_slug, rating_sum, rating_count, display_name").eq("id", vendorId).maybeSingle();
       return data;
+    },
+  });
+  const { data: buyerProf } = useQuery({
+    queryKey: ["buyer-prof", buyerId],
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("display_name, photo_url").eq("user_id", buyerId).maybeSingle();
+      return data || null;
+    },
+  });
+  const { data: myProf } = useQuery({
+    queryKey: ["my-prof", session ? session.user.id : "anon"],
+    enabled: !!session,
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("display_name").eq("user_id", session!.user.id).maybeSingle();
+      return data || null;
     },
   });
   useEffect(() => { if (endRef.current) endRef.current.scrollIntoView({ behavior: "smooth" }); }, [msgs]);
@@ -43,8 +58,8 @@ function ChatThread() {
   if (!session) return null;
   const myId = vendor ? vendor.user_id : session.user.id;
   const iAmVendor = vendor && vendor.user_id === session.user.id;
-  const otherName = iAmVendor ? "Customer" : (vendor ? vendor.shop_name : "Chat");
-  const otherPhoto = !iAmVendor && vendor ? vendor.profile_image_url : null;
+  const otherName = iAmVendor ? (buyerProf && buyerProf.display_name ? buyerProf.display_name : "Customer") : (vendor ? (vendor.display_name || vendor.shop_name) : "Chat");
+  const otherPhoto = iAmVendor ? (buyerProf ? buyerProf.photo_url : null) : (vendor ? vendor.profile_image_url : null);
   const otherInitial = otherName.slice(0, 1).toUpperCase();
   const onFile = async (e: any) => {
     const f = e.target.files && e.target.files[0];
@@ -65,7 +80,7 @@ function ChatThread() {
       return;
     }
     if (!body.trim() && !attach) return;
-    await supabase.from("messages").insert({ vendor_id: vendorId, buyer_id: buyerId, sender_id: session.user.id, sender_name: iAmVendor ? vendor.shop_name : (session.user.email || "Buyer"), body: body.trim() || (attach ? (attach.type === "video" ? "🎥 Video" : "📷 Photo") : ""), attachment_url: attach ? attach.url : null, attachment_type: attach ? attach.type : null });
+    await supabase.from("messages").insert({ vendor_id: vendorId, buyer_id: buyerId, sender_id: session.user.id, sender_name: iAmVendor ? (vendor.display_name || vendor.shop_name) : (myProf && myProf.display_name ? myProf.display_name : (session.user.email || "Buyer")), body: body.trim() || (attach ? (attach.type === "video" ? "🎥 Video" : "📷 Photo") : ""), attachment_url: attach ? attach.url : null, attachment_type: attach ? attach.type : null });
     setBody(""); setAttach(null);
     qc.invalidateQueries();
   };

@@ -22,7 +22,7 @@ function ChatsInbox() {
         const { data } = await supabase.from("messages").select("*").eq("vendor_id", vendor.id).order("created_at", { ascending: false });
         return data || [];
       }
-      const { data } = await supabase.from("messages").select("*, vendors(shop_name, profile_image_url)").eq("buyer_id", session!.user.id).order("created_at", { ascending: false });
+      const { data } = await supabase.from("messages").select("*, vendors(shop_name, profile_image_url, display_name)").eq("buyer_id", session!.user.id).order("created_at", { ascending: false });
       return data || [];
     },
   });
@@ -34,7 +34,7 @@ function ChatsInbox() {
         otherId,
         vendorId: m.vendor_id,
         buyerId: vendor ? m.buyer_id : session!.user.id,
-        name: vendor ? (m.sender_name || "Customer") : (m.vendors ? m.vendors.shop_name : "Trader"),
+        name: vendor ? (m.sender_name || "Customer") : (m.vendors ? (m.vendors.display_name || m.vendors.shop_name) : "Trader"),
         photo: vendor ? null : (m.vendors ? m.vendors.profile_image_url : null),
         last: m.body,
         lastAt: m.created_at,

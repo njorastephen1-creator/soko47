@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import fs from 'fs';
+fs.writeFileSync('src/routes/_authenticated/profile.tsx', `import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { User } from "lucide-react";
 import { useState } from "react";
@@ -75,3 +76,44 @@ function Profile() {
     </div>
   );
 }
+`);
+console.log('Profile page: custom name + photo for everyone');
+let chat = fs.readFileSync('src/routes/_authenticated/chat.$vendorId.$buyerId.tsx', 'utf8');
+if (!chat.includes('buyerProf')) {
+  chat = chat.split('.select("shop_name, user_id, profile_image_url, slug, market_name, county_slug, rating_sum, rating_count")').join('.select("shop_name, user_id, profile_image_url, slug, market_name, county_slug, rating_sum, rating_count, display_name")');
+  chat = chat.split('  useEffect(() => { if (endRef.current) endRef.current.scrollIntoView({ behavior: "smooth" }); }, [msgs]);').join(`  const { data: buyerProf } = useQuery({
+    queryKey: ["buyer-prof", buyerId],
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("display_name, photo_url").eq("user_id", buyerId).maybeSingle();
+      return data || null;
+    },
+  });
+  const { data: myProf } = useQuery({
+    queryKey: ["my-prof", session ? session.user.id : "anon"],
+    enabled: !!session,
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("display_name").eq("user_id", session!.user.id).maybeSingle();
+      return data || null;
+    },
+  });
+  useEffect(() => { if (endRef.current) endRef.current.scrollIntoView({ behavior: "smooth" }); }, [msgs]);`);
+  chat = chat.split('const otherName = iAmVendor ? "Customer" : (vendor ? vendor.shop_name : "Chat");').join('const otherName = iAmVendor ? (buyerProf && buyerProf.display_name ? buyerProf.display_name : "Customer") : (vendor ? (vendor.display_name || vendor.shop_name) : "Chat");');
+  chat = chat.split('const otherPhoto = !iAmVendor && vendor ? vendor.profile_image_url : null;').join('const otherPhoto = iAmVendor ? (buyerProf ? buyerProf.photo_url : null) : (vendor ? vendor.profile_image_url : null);');
+  chat = chat.split('sender_name: iAmVendor ? vendor.shop_name : (session.user.email || "Buyer")').join('sender_name: iAmVendor ? (vendor.display_name || vendor.shop_name) : (myProf && myProf.display_name ? myProf.display_name : (session.user.email || "Buyer"))');
+  fs.writeFileSync('src/routes/_authenticated/chat.$vendorId.$buyerId.tsx', chat);
+  console.log('Chat uses display names + photos');
+}
+let chats = fs.readFileSync('src/routes/_authenticated/chats.tsx', 'utf8');
+if (!chats.includes('display_name')) {
+  chats = chats.split('vendors(shop_name, profile_image_url)').join('vendors(shop_name, profile_image_url, display_name)');
+  chats = chats.split('name: vendor ? (m.sender_name || "Customer") : (m.vendors ? m.vendors.shop_name : "Trader"),').join('name: vendor ? (m.sender_name || "Customer") : (m.vendors ? (m.vendors.display_name || m.vendors.shop_name) : "Trader"),');
+  fs.writeFileSync('src/routes/_authenticated/chats.tsx', chats);
+  console.log('Inbox uses display names');
+}
+let vendor = fs.readFileSync('src/routes/_authenticated/vendor.tsx', 'utf8');
+if (!vendor.includes('/profile')) {
+  vendor = vendor.split('<Button asChild size="sm" variant="outline"><Link to="/chats">Chats</Link></Button>').join('<Button asChild size="sm" variant="outline"><Link to="/chats">Chats</Link></Button>\n            <Button asChild size="sm" variant="outline"><Link to="/profile">My profile</Link></Button>');
+  fs.writeFileSync('src/routes/_authenticated/vendor.tsx', vendor);
+  console.log('Profile button on vendor dashboard');
+}
+console.log('DONE');

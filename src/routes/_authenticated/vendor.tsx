@@ -40,6 +40,8 @@ function VendorDashboard() {
   const [prodFilter, setProdFilter] = useState("all");
   const [prodSearch, setProdSearch] = useState("");
   const [offers, setOffers] = useState<any>({});
+  const [ordFilter, setOrdFilter] = useState("all");
+  const [ordPage, setOrdPage] = useState(0);
   const [np, setNp] = useState<any>({ title: "", price: "", offer: "", stock: "", category: "produce", unit: "piece", condition: "brand new", image: "", imageUrl: "", brand: "", desc: "" });
   const addProduct = async () => {
     if (!vendor) return;
@@ -137,6 +139,9 @@ function VendorDashboard() {
     });
     return Object.values(map).sort((a: any, b: any) => (a.created_at < b.created_at ? 1 : -1));
   })();
+  const filteredOrders = orderGroups.filter((g: any) => (ordFilter === "all" ? true : g.status === ordFilter));
+  const ordPages = Math.max(0, Math.ceil(filteredOrders.length / 15) - 1);
+  const ordSlice = filteredOrders.slice(ordPage * 15, ordPage * 15 + 15);
   const saveOffer = async (p: any) => {
     const val = offers[p.id];
     const num = val === "" || val == null ? null : Number(val);
@@ -212,9 +217,10 @@ function VendorDashboard() {
       </div>
       <div className="mt-6 rounded-3xl border border-border bg-card p-6">
         <h2 className="font-display text-xl font-bold">Incoming orders</h2>
+        <div className="mt-3 flex flex-wrap gap-2">{["all", "pending", "fulfilled", "cancelled"].map((f) => (<button key={f} onClick={() => { setOrdFilter(f); setOrdPage(0); }} className={"rounded-full px-3 py-1 text-xs font-semibold capitalize " + (ordFilter === f ? "bg-primary text-primary-foreground" : "bg-secondary")}>{f}</button>))}</div>
         <div className="mt-3 space-y-3">
           {orderGroups.length === 0 && <p className="text-sm text-muted-foreground">No orders yet - share your shop link and let Kenya find you.</p>}
-          {orderGroups.map((g: any) => (
+          {ordSlice.map((g: any) => (
             <div key={g.id} className="rounded-xl border border-border p-3">
               <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
                 <span>{new Date(g.created_at).toLocaleString()}</span>
@@ -242,6 +248,13 @@ function VendorDashboard() {
             </div>
           ))}
         </div>
+        {ordPages > 0 ? (
+          <div className="mt-3 flex items-center justify-between text-xs font-semibold">
+            <button disabled={ordPage === 0} onClick={() => setOrdPage(ordPage - 1)} className="rounded-full bg-secondary px-3 py-1 disabled:opacity-40">Previous</button>
+            <span>Page {ordPage + 1} of {ordPages + 1}</span>
+            <button disabled={ordPage >= ordPages} onClick={() => setOrdPage(ordPage + 1)} className="rounded-full bg-secondary px-3 py-1 disabled:opacity-40">Next</button>
+          </div>
+        ) : null}
       </div>
       <div className="mt-6 rounded-3xl border border-border bg-card p-6">
         <h2 className="font-display text-xl font-bold">My shops</h2>

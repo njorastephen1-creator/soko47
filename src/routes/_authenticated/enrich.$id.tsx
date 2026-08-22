@@ -85,7 +85,7 @@ function EnrichPage() {
     }).eq("id", id);
     if (error) return toast.error(error.message);
     qc.invalidateQueries();
-    toast.success("Listing enriched - Amazon-depth live!");
+    toast.success("Listing enriched - full live!");
     navigate({ to: "/product/$id", params: { id } });
   };
   return (

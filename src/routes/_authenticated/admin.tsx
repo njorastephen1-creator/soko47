@@ -298,12 +298,15 @@ function AdminPage() {
           <Chips value={rdFilter} options={["all", "available", "busy", "offline"]} onChange={(f: string) => { setRdFilter(f); setRdPage(0); }} />
           <div className="overflow-x-auto rounded-2xl border border-border bg-card">
             <table className="w-full text-sm">
-              <thead className={th}><tr><th className={td}>Name</th><th className={td}>Phone</th><th className={td}>Area</th><th className={td}>Status</th><th /></tr></thead>
+              <thead className={th}><tr><th className={td}>Name</th><th className={td}>Phone</th><th className={td}>ID No.</th><th className={td}>Vehicle</th><th className={td}>Emergency</th><th className={td}>Area</th><th className={td}>Status</th><th /></tr></thead>
               <tbody>
                 {rdRows.slice(rdPage * PAGE, rdPage * PAGE + PAGE).map((r: any) => (
                   <tr key={r.id} className="border-b border-border last:border-0">
                     <td className={td + " font-medium"}>{r.name}</td>
                     <td className={td + " text-muted-foreground"}>{r.phone}</td>
+                    <td className={td}>{r.id_number || "-"}</td>
+                    <td className={td}>{r.vehicle_type || "-"}{r.vehicle_reg ? " · " + r.vehicle_reg : ""}</td>
+                    <td className={td + " text-xs"}>{r.emergency_name || "-"} {r.emergency_phone ? "· " + r.emergency_phone : ""}</td>
                     <td className={td}>{r.area}</td>
                     <td className={td}>
                       <select value={r.status} onChange={(e) => setRider(r.id, { status: e.target.value }, "Rider status updated")} className="rounded-md border border-border bg-card px-2 py-1 text-xs">

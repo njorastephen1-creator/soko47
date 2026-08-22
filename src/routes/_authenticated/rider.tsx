@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_authenticated/rider")({ component: Rider
 function RiderPage() {
   const { session } = useSession();
   const qc = useQueryClient();
-  const [form, setForm] = useState({ name: "", phone: "", area: "" });
+  const [form, setForm] = useState({ name: "", phone: "", area: "", idNumber: "", vehicleType: "Boda boda", vehicleReg: "", emName: "", emPhone: "" });
   const [hPage, setHPage] = useState(0);
   const { data: rider } = useQuery({
     queryKey: ["my-rider", session ? session.user.id : "anon"],
@@ -49,8 +49,14 @@ function RiderPage() {
         <div><Label>Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
         <div><Label>Phone</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="07XX..." /></div>
         <div><Label>Area / town</Label><Input value={form.area} onChange={(e) => setForm({ ...form, area: e.target.value })} placeholder="e.g. Nakuru town" /></div>
+        <div><Label>National ID number</Label><Input value={form.idNumber} onChange={(e) => setForm({ ...form, idNumber: e.target.value })} placeholder="e.g. 12345678" /></div>
+        <div><Label>Vehicle type</Label><select value={form.vehicleType} onChange={(e) => setForm({ ...form, vehicleType: e.target.value })} className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm"><option>Boda boda</option><option>Bicycle</option><option>Tuk-tuk</option><option>On foot</option></select></div>
+        <div><Label>Vehicle reg (optional)</Label><Input value={form.vehicleReg} onChange={(e) => setForm({ ...form, vehicleReg: e.target.value })} placeholder="e.g. KABC 123D" /></div>
+        <div><Label>Emergency contact name</Label><Input value={form.emName} onChange={(e) => setForm({ ...form, emName: e.target.value })} /></div>
+        <div><Label>Emergency contact phone</Label><Input value={form.emPhone} onChange={(e) => setForm({ ...form, emPhone: e.target.value })} placeholder="07XX..." /></div>
+        <p className="text-xs text-muted-foreground">These details protect buyers and let Soko47 trace every delivery.</p>
         <Button className="w-full" onClick={async () => {
-          if (form.name.trim().length < 2 || form.phone.trim().length < 10) return toast.error("Fill name and valid phone");
+          if (form.name.trim().length < 2 || form.phone.trim().length < 10 || form.idNumber.trim().length < 6 || form.emPhone.trim().length < 10) return toast.error("Name, phone, ID number and emergency phone are required");
           const { error } = await supabase.from("riders").insert({ user_id: session.user.id, name: form.name.trim(), phone: form.phone.trim(), area: form.area.trim() || null, status: "available" });
           if (error) return toast.error(error.message);
           qc.invalidateQueries();

@@ -161,7 +161,7 @@ function ChatThread() {
         {otherPhoto ? <img src={otherPhoto} alt="" onClick={(e) => { e.stopPropagation(); setFullPhoto(otherPhoto); }} className="size-10 cursor-pointer rounded-full object-cover" /> : <span onClick={() => setShowProfile(!showProfile)} className="flex size-10 cursor-pointer items-center justify-center rounded-full bg-white/20 font-display font-bold">{otherInitial}</span>}
         <div className="flex-1 cursor-pointer" onClick={() => setShowProfile(!showProfile)}>
           <p className="font-semibold">{otherName}</p>
-          <p className="text-[11px] opacity-80">{selectedMsg ? (isMine ? "Your message selected" : "Their message selected") : (otherTyping ? "typing..." : (onlineNow ? "online" : (otherLastSeen ? "last seen " + new Date(otherLastSeen).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "Long-press / right-click a message"))}</p>
+          <p className="text-[11px] opacity-80">{selectedMsg ? (isMine ? "Your message selected" : "Their message selected") : (otherTyping ? "typing..." : (onlineNow ? "online" : (otherLastSeen ? "last seen " + new Date(otherLastSeen).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "Long-press / right-click a message")))}</p>
         </div>
         {selectedMsg ? (
           <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { formatKes } from "@/lib/cart";
+import { useSettings } from "@/lib/use-settings";
 import { LiveMap } from "@/components/live-map";
 export const Route = createFileRoute("/_authenticated/admin")({ component: AdminPage });
 const PAGE = 15;
@@ -37,6 +38,9 @@ function AdminPage() {
   const qc = useQueryClient();
   const isAdm = isAdminEmail(session ? session.user.email : "");
   const [tab, setTab] = useState("overview");
+  const settings = useSettings();
+  const [setForm, setSetForm] = useState<any>(null);
+  const sForm = setForm || settings;
   const [bTitle, setBTitle] = useState("");
   const [bBody, setBBody] = useState("");
   const [vSearch, setVSearch] = useState(""); const [vFilter, setVFilter] = useState("all"); const [vPage, setVPage] = useState(0);
@@ -101,6 +105,12 @@ function AdminPage() {
     qc.invalidateQueries();
     toast.success("Purged forever");
   };
+  const saveSettings = async () => {
+    const { error } = await supabase.from("platform_settings").update({ settings: sForm }).eq("id", 1);
+    if (error) return toast.error(error.message);
+    qc.invalidateQueries();
+    toast.success("Platform pricing updated everywhere - no code needed");
+  };
   const broadcast = async () => {
     if (!bTitle.trim() || !bBody.trim()) return toast.error("Add title and message");
     const { data: all } = await supabase.rpc("user_directory");
@@ -130,7 +140,7 @@ function AdminPage() {
   });
   const threads = Object.values(threadsMap).sort((a: any, b: any) => new Date(b.lastAt).getTime() - new Date(a.lastAt).getTime());
   const threadMsgs = thread ? (msgs || []).filter((m: any) => m.vendor_id === thread.vendor_id && m.buyer_id === thread.buyer_id) : [];
-  const tabs = ["overview", "vendors", "listings", "orders", "receipts", "users", "riders", "map", "social", "chats", "trash", "broadcast"];
+  const tabs = ["overview", "vendors", "listings", "orders", "receipts", "users", "riders", "map", "social", "settings", "chats", "trash", "broadcast"];
   const card = "rounded-2xl border border-border bg-card p-5";
   const th = "border-b border-border bg-secondary text-left";
   const td = "p-3";
@@ -417,6 +427,18 @@ function AdminPage() {
               ))}
             </div>
           </div>
+        </div>
+      )}
+      {tab === "settings" && (
+        <div className="mt-6 max-w-xl rounded-2xl border border-border bg-card p-6">
+          <h2 className="font-display font-bold">Platform pricing - edit live</h2>
+          <p className="mt-1 text-xs text-muted-foreground">Change any price and save - it updates across the whole app instantly, no code changes.</p>
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            {[["starter_price", "Starter plan (KSh/mo)"], ["pro_price", "Pro plan (KSh/mo)"], ["rider_sub_price", "Rider sub (KSh/mo)"], ["social_price", "Social (KSh/week)"], ["boost_price", "Boost ad (KSh)"], ["rider_fee_base", "Delivery base fare"], ["rider_fee_per_km", "Per-km fare"], ["rider_share_pct", "Rider share %"], ["starter_products", "Starter product cap"]].map((k) => (
+              <div key={k[0]}><p className="text-xs font-semibold">{k[1]}</p><Input type="number" value={sForm[k[0]]} onChange={(e) => setSetForm({ ...sForm, [k[0]]: Number(e.target.value) })} /></div>
+            ))}
+          </div>
+          <Button className="mt-4" onClick={saveSettings}>Save pricing</Button>
         </div>
       )}
       {tab === "broadcast" && (

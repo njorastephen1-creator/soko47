@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/use-session";
 import { useMyVendor } from "@/lib/my-vendor";
 import { formatKes } from "@/lib/cart";
+import { useSettings } from "@/lib/use-settings";
 import { QRCodeSVG } from "qrcode.react";
 import { getCounty } from "@/data/markets";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ function VendorDashboard() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { vendor, vendors, loading } = useMyVendor();
+  const settings = useSettings();
   const { data: products } = useQuery({
     queryKey: ["vendor-products", vendor ? vendor.id : "none"],
     enabled: !!vendor,
@@ -237,11 +239,11 @@ function VendorDashboard() {
       </div>
       <div className="mt-6 rounded-3xl border border-accent/40 bg-accent/10 p-6">
         <h2 className="font-display text-xl font-bold">Subscription - M-Pesa</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Starter KSh 499 (100 products) · Pro KSh 999 (unlimited + homepage ads + analytics). Unlocks the second M-Pesa confirms.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Starter KSh {Number(settings.starter_price)} ({Number(settings.starter_products)} products) · Pro KSh {Number(settings.pro_price)} (unlimited + homepage ads + analytics).</p>
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <Input className="w-44" placeholder="M-Pesa phone e.g. 0712..." value={payPhone} onChange={(e) => setPayPhone(e.target.value)} />
-          <Button variant="outline" onClick={() => paySubscription(499, "starter")} disabled={paying}>{paying ? "Waiting..." : "Starter · KSh 499/mo"}</Button>
-          <Button onClick={() => paySubscription(999, "pro")} disabled={paying}>{paying ? "Waiting..." : "Pro · KSh 999/mo"}</Button>
+          <Button variant="outline" onClick={() => paySubscription(Number(settings.starter_price), "starter")} disabled={paying}>{paying ? "Waiting..." : "Starter · KSh " + Number(settings.starter_price) + "/mo"}</Button>
+          <Button onClick={() => paySubscription(Number(settings.pro_price), "pro")} disabled={paying}>{paying ? "Waiting..." : "Pro · KSh " + Number(settings.pro_price) + "/mo"}</Button>
         </div>
         {payMsg ? <p className="mt-2 text-xs font-semibold">{payMsg}</p> : null}
       </div>

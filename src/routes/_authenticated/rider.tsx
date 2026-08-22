@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LiveMap } from "@/components/live-map";
 import { haversineKm, feeForKm, etaMin } from "@/lib/geo";
+import { useSettings } from "@/lib/use-settings";
 import { ImageUpload } from "@/components/image-upload";
 import { stkPush, stkStatus } from "@/lib/mpesa";
 export const Route = createFileRoute("/_authenticated/rider")({ component: RiderPage });
@@ -24,6 +25,7 @@ function RiderPage() {
   const [paying, setPaying] = useState(false);
   const [payMsg, setPayMsg] = useState("");
   const [hPage, setHPage] = useState(0);
+  const settings = useSettings();
   const { data: rider } = useQuery({
     queryKey: ["my-rider", session ? session.user.id : "anon"],
     enabled: !!session,
@@ -100,7 +102,7 @@ function RiderPage() {
     setPaying(true);
     setPayMsg("Sending STK prompt - check your phone...");
     try {
-      const d = await stkPush(payPhone.trim(), 300, "RIDER-" + rider.id.slice(0, 8), rider.name, rider.pay_phone || undefined);
+      const d = await stkPush(payPhone.trim(), Number(settings.rider_sub_price), "RIDER-" + rider.id.slice(0, 8), rider.name, rider.pay_phone || undefined);
       const invoice = d.invoice_id || d.id || (d.invoice && d.invoice.invoice_id);
       if (!invoice) throw new Error(d.error || "No invoice");
       setPayMsg("Prompt sent - enter PIN, then wait...");
@@ -143,10 +145,10 @@ function RiderPage() {
   };
   const feeFor = (o: any) => {
     if (o.delivery_fee_kes) return Number(o.delivery_fee_kes);
-    if (o.pickup_lat != null && o.pickup_lng != null && o.delivery_lat != null && o.delivery_lng != null) return feeForKm(haversineKm(Number(o.pickup_lat), Number(o.pickup_lng), Number(o.delivery_lat), Number(o.delivery_lng)));
+    if (o.pickup_lat != null && o.pickup_lng != null && o.delivery_lat != null && o.delivery_lng != null) return feeForKm(haversineKm(Number(o.pickup_lat), Number(o.pickup_lng), Number(o.delivery_lat), Number(o.delivery_lng)), Number(settings.rider_fee_base), Number(settings.rider_fee_per_km));
     return 150;
   };
-  const earnFor = (o: any) => Math.round(feeFor(o) * 0.9);
+  const earnFor = (o: any) => Math.round(feeFor(o) * (Number(settings.rider_share_pct) / 100));
   const active = (mine || []).filter((o: any) => o.delivery_status === "accepted");
   const done = (mine || []).filter((o: any) => o.delivery_status === "delivered");
   const earnings = done.reduce((s: number, o: any) => s + earnFor(o), 0);
@@ -170,10 +172,10 @@ function RiderPage() {
       {!subActive ? (
         <div className="mt-4 rounded-2xl border border-accent/40 bg-accent/10 p-4">
           <h2 className="font-semibold">Rider subscription - M-Pesa</h2>
-          <p className="mt-1 text-xs text-muted-foreground">KSh 300/month keeps you active and eligible for deliveries.</p>
+          <p className="mt-1 text-xs text-muted-foreground">KSh {Number(settings.rider_sub_price)}/month keeps you active and eligible for deliveries.</p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <Input className="w-44" placeholder="M-Pesa phone e.g. 0712..." value={payPhone} onChange={(e) => setPayPhone(e.target.value)} />
-            <Button onClick={() => payRiderSub()} disabled={paying}>{paying ? "Waiting..." : "Activate - KSh 300/mo"}</Button>
+            <Button onClick={() => payRiderSub()} disabled={paying}>{paying ? "Waiting..." : "Activate - KSh " + Number(settings.rider_sub_price) + "/mo"}</Button>
           </div>
           {payMsg ? <p className="mt-2 text-xs font-semibold">{payMsg}</p> : null}
         </div>
@@ -191,7 +193,7 @@ function RiderPage() {
               <span className="rounded-full bg-accent/15 px-2 py-0.5 text-xs font-bold text-accent-deep">{formatKes(135)} for you</span>
             </div>
             <p className="mt-1 text-xs text-muted-foreground">Drop at: {o.delivery_location}</p>
-            {myPos && o.vendors && o.vendors.lat != null ? (() => { const km = haversineKm(myPos.lat, myPos.lng, Number(o.vendors.lat), Number(o.vendors.lng)); return <p className="mt-1 text-xs font-semibold text-accent-deep">{km.toFixed(1)} km · ~{etaMin(km)} min · fare {formatKes(feeForKm(km))} · you earn {formatKes(Math.round(feeForKm(km) * 0.9))}</p>; })() : null}
+            {myPos && o.vendors && o.vendors.lat != null ? (() => { const km = haversineKm(myPos.lat, myPos.lng, Number(o.vendors.lat), Number(o.vendors.lng)); return <p className="mt-1 text-xs font-semibold text-accent-deep">{km.toFixed(1)} km · ~{etaMin(km)} min · fare {formatKes(feeForKm(km, Number(settings.rider_fee_base), Number(settings.rider_fee_per_km)))} · you earn {formatKes(Math.round(feeForKm(km, Number(settings.rider_fee_base), Number(settings.rider_fee_per_km)) * (Number(settings.rider_share_pct) / 100)))}</p>; })() : null}
             <div className="mt-2 flex gap-2">
               <Button size="sm" disabled={!online || !subActive} onClick={() => accept(o)}>Accept delivery</Button>
               <Button size="sm" variant="outline" asChild={false} onClick={() => { window.location.href = "tel:" + o.buyer_phone; }}><Phone className="size-4" /> Call</Button>

@@ -28,6 +28,9 @@ function PosPage() {
   const [rcFilter, setRcFilter] = useState("all");
   const [rcPage, setRcPage] = useState(0);
   const [ordPage, setOrdPage] = useState(0);
+  const [posSearch, setPosSearch] = useState("");
+  const [posCat, setPosCat] = useState("all");
+  const [posPage, setPosPage] = useState(0);
   const { data: myVendor, isLoading: mvLoading } = useQuery({
     queryKey: ["my-vendor-pos", session ? session.user.id : "anon"],
     enabled: !!session,
@@ -40,7 +43,7 @@ function PosPage() {
     queryKey: ["pos-products", myVendor ? myVendor.id : "none"],
     enabled: !!myVendor,
     queryFn: async () => {
-      const { data } = await supabase.from("products").select("id, title, price_kes").eq("vendor_id", myVendor!.id).order("title");
+      const { data } = await supabase.from("products").select("id, title, price_kes, category_slug").eq("vendor_id", myVendor!.id).order("title");
       return data || [];
     },
   });
@@ -123,6 +126,10 @@ function PosPage() {
   const rcFiltered = (past || []).filter((r: any) => (rcFilter === "all" ? true : r.payment_method === rcFilter));
   const rcPages = Math.max(0, Math.ceil(rcFiltered.length / 15) - 1);
   const rcSlice = rcFiltered.slice(rcPage * 15, rcPage * 15 + 15);
+  const posCats = Array.from(new Set((myProducts || []).map((x: any) => x.category_slug).filter(Boolean))) as string[];
+  const posFiltered = (myProducts || []).filter((x: any) => (posCat === "all" ? true : x.category_slug === posCat)).filter((x: any) => (x.title || "").toLowerCase().includes(posSearch.toLowerCase()));
+  const posPages = Math.max(0, Math.ceil(posFiltered.length / 20) - 1);
+  const posProdSlice = posFiltered.slice(posPage * 20, posPage * 20 + 20);
   return (
     <div className="mx-auto max-w-6xl px-4 pb-28 pt-8 md:pb-8">
       <h1 className="font-display text-3xl font-bold">POS & Receipts</h1>
@@ -131,10 +138,22 @@ function PosPage() {
         <div className="space-y-6 lg:col-span-2">
           <div className="rounded-3xl border border-border bg-card p-5">
             <h2 className="font-semibold">Your products - tap to add</h2>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <Input className="w-48" placeholder="Search products..." value={posSearch} onChange={(e) => { setPosSearch(e.target.value); setPosPage(0); }} />
+              <select value={posCat} onChange={(e) => { setPosCat(e.target.value); setPosPage(0); }} className="rounded-md border border-border bg-card px-2 py-1 text-xs">
+                <option value="all">All categories</option>
+                {posCats.map((c) => (<option key={c} value={c}>{c}</option>))}
+              </select>
+            </div>
             <div className="mt-3 flex flex-wrap gap-2">
-              {(myProducts || []).map((p: any) => (
-                <button key={p.id} onClick={() => addLine(p.title, Number(p.price_kes))} className="rounded-full border border-border bg-secondary px-3 py-1.5 text-xs font-medium hover:bg-accent/20">+ {p.title} · {formatKes(Number(p.price_kes))}</button>
+              {posProdSlice.map((pp: any) => (
+                <button key={pp.id} onClick={() => addLine(pp.title, Number(pp.price_kes))} className="rounded-full border border-border bg-secondary px-3 py-1.5 text-xs font-medium hover:bg-accent/20">+ {pp.title} · {formatKes(Number(pp.price_kes))}</button>
               ))}
+            </div>
+            <div className="mt-2 flex items-center justify-between text-xs font-semibold">
+              <button disabled={posPage === 0} onClick={() => setPosPage(posPage - 1)} className="rounded-full bg-secondary px-3 py-1 disabled:opacity-40">Previous</button>
+              <span>{posFiltered.length} products · page {posPage + 1} of {posPages + 1}</span>
+              <button disabled={posPage >= posPages} onClick={() => setPosPage(posPage + 1)} className="rounded-full bg-secondary px-3 py-1 disabled:opacity-40">Next</button>
             </div>
             <div className="mt-4 flex flex-wrap items-end gap-2">
               <div className="min-w-32 flex-1"><Label>Custom item</Label><Input value={customName} onChange={(e) => setCustomName(e.target.value)} placeholder="e.g. Shopping bag" /></div>

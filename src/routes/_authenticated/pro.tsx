@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { BarChart3, Megaphone, Sparkles, Trash2 } from "lucide-react";
 import { useState } from "react";
@@ -14,6 +14,7 @@ import { ImageUpload } from "@/components/image-upload";
 export const Route = createFileRoute("/_authenticated/pro")({ component: ProStudio });
 function ProStudio() {
   const { session } = useSession();
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const [msg, setMsg] = useState("");
   const [adTitle, setAdTitle] = useState("");
@@ -35,7 +36,7 @@ function ProStudio() {
       return data || [];
     },
   });
-  if (!vendor) return <p className="py-16 text-center text-muted-foreground">Loading...</p>;
+  if (!vendor) { if (typeof window !== "undefined") setTimeout(() => navigate({ to: "/" }), 50); return <p className="py-16 text-center text-muted-foreground">Redirecting...</p>; }
   if (vendor.subscription_plan !== "pro") return (
     <div className="mx-auto max-w-md px-4 py-16 text-center">
       <Sparkles className="mx-auto size-12 text-accent" />

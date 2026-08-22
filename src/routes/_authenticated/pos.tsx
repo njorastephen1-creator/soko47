@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Minus, Plus, ReceiptText, Trash2, X } from "lucide-react";
 import { useState } from "react";
@@ -15,6 +15,7 @@ export const Route = createFileRoute("/_authenticated/pos")({ component: PosPage
 type Line = { title: string; price: number; qty: number };
 function PosPage() {
   const { session } = useSession();
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const [lines, setLines] = useState<Line[]>([]);
   const [posFilter, setPosFilter] = useState("all");
@@ -79,7 +80,7 @@ function PosPage() {
     qc.invalidateQueries();
     toast.success("Receipt deleted");
   };
-  if (!myVendor) return <p className="py-16 text-center text-muted-foreground">Open a trader shop first to use the POS.</p>;
+  if (!myVendor) { if (typeof window !== "undefined") setTimeout(() => navigate({ to: "/" }), 50); return <p className="py-16 text-center text-muted-foreground">Redirecting...</p>; }
   const shopUrl = typeof window !== "undefined" ? window.location.origin + "/shop/" + myVendor.slug : "";
   const total = lines.reduce((s, l) => s + l.price * l.qty, 0);
   const addLine = (t: string, p: number) => setLines((prev) => {

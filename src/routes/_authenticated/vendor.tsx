@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {BadgeCheck, Package, Plus, Store, Users, Trash2 } from "lucide-react";
 import { useState } from "react";
@@ -19,6 +19,7 @@ import { Stars, ratingOf } from "@/components/reviews";
 export const Route = createFileRoute("/_authenticated/vendor")({ component: VendorDashboard });
 function VendorDashboard() {
   const { session } = useSession();
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const { vendor, vendors } = useMyVendor();
   const { data: products } = useQuery({
@@ -131,6 +132,11 @@ function VendorDashboard() {
     qc.invalidateQueries();
     toast.success("Order deleted");
   };
+  if (!vendor) {
+    if (typeof window !== "undefined") setTimeout(() => navigate({ to: "/" }), 50);
+    return <p className="py-16 text-center text-muted-foreground">Redirecting...</p>;
+  }
+  return null;
   if (!vendor) return (
     <div className="mx-auto max-w-md px-4 py-16 text-center">
       <Store className="mx-auto size-12 text-accent" />

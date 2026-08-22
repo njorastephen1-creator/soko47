@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { BadgeCheck, Package, Plus, Store, Users } from "lucide-react";
+import { BadgeCheck, Package, Plus, Store, Users } , AlertTriangle, Bike, CheckCircle2, MessageCircle, Plus, Store } from "lucide-react";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -222,10 +222,10 @@ function VendorDashboard() {
               </div>
               <p className="mt-1 text-sm font-semibold">{g.buyer_name} · <a className="underline" href={"tel:" + g.buyer_phone}>{g.buyer_phone}</a></p>
               <p className="text-xs text-muted-foreground">{g.delivery_location || "Pickup at stall"}</p>
-              {g.delivery_status && g.delivery_status !== "none" ? <p className="text-xs font-semibold text-accent-deep">🛵 Delivery: {g.delivery_status}</p> : null}
-              {g.payment_status === "paid" && g.payment_ref ? <p className="text-xs font-semibold text-success">✅ PAID via {g.payment_method || "M-Pesa"} · ref {String(g.payment_ref).slice(0, 8)}</p> : null}
-              {g.payment_status === "paid" && !g.payment_ref ? <p className="text-xs font-semibold text-success">✅ PAID</p> : null}
-              {g.payment_status === "claimed" ? <p className="text-xs font-semibold text-warning">⚠️ Buyer claims direct payment - check your M-Pesa SMS before fulfilling</p> : null}
+              {g.delivery_status && g.delivery_status !== "none" ? <p className="flex items-center gap-1 text-xs font-semibold text-accent-deep"><Bike className="size-3.5" /> Delivery: {g.delivery_status}</p> : null}
+              {g.payment_status === "paid" && g.payment_ref ? <p className="flex items-center gap-1 text-xs font-semibold text-success"><CheckCircle2 className="size-3.5" /> PAID via {g.payment_method || "M-Pesa"} · ref {String(g.payment_ref).slice(0, 8)}</p> : null}
+              {g.payment_status === "paid" && !g.payment_ref ? <p className="flex items-center gap-1 text-xs font-semibold text-success"><CheckCircle2 className="size-3.5" /> PAID</p> : null}
+              {g.payment_status === "claimed" ? <p className="flex items-center gap-1 text-xs font-semibold text-warning"><AlertTriangle className="size-3.5" /> Buyer claims direct payment - check your M-Pesa SMS before fulfilling</p> : null}
               <div className="mt-2 space-y-1 text-sm">
                 {g.items.map((i: any, x: number) => (<div key={x} className="flex justify-between"><span>{i.title} x{i.qty}</span><span>{formatKes(i.price * i.qty)}</span></div>))}
               </div>
@@ -233,7 +233,7 @@ function VendorDashboard() {
                 <p className="font-semibold">{formatKes(g.total)}</p>
                 {g.status === "pending" ? (
                   <div className="flex flex-wrap gap-2">
-                    <Button asChild size="sm" variant="outline"><Link to="/chat/$vendorId/$buyerId" params={{ vendorId: vendor.id, buyerId: g.buyer_id }}>💬 Chat</Link></Button>
+                    <Button asChild size="sm" variant="outline"><Link to="/chat/$vendorId/$buyerId" params={{ vendorId: vendor.id, buyerId: g.buyer_id }}><MessageCircle className="size-4" /> Chat</Link></Button>
                     {g.payment_status !== "paid" && <Button size="sm" variant="outline" onClick={() => markStatus(g.id, { payment_status: "paid" })}>Mark paid</Button>}
                     <Button size="sm" onClick={() => markStatus(g.id, { status: "fulfilled" })}>Fulfill</Button>
                   </div>
@@ -244,7 +244,7 @@ function VendorDashboard() {
         </div>
       </div>
       <div className="mt-6 rounded-3xl border border-border bg-card p-6">
-        <h2 className="font-display text-xl font-bold">🏪 My shops</h2>
+        <h2 className="flex items-center gap-2 font-display text-xl font-bold"><Store className="size-5 text-accent-deep" /> My shops</h2>
         <div className="mt-3 flex flex-wrap gap-2">
           {(vendors || []).map((s: any) => (
             <button key={s.id} onClick={() => switchShop(s.id)} className={"rounded-full px-3 py-1.5 text-xs font-semibold " + (vendor && vendor.id === s.id ? "bg-primary text-primary-foreground" : "bg-secondary")}>{s.shop_name} · {s.subscription_plan || "trial"}</button>
@@ -257,7 +257,7 @@ function VendorDashboard() {
         <p className="mt-2 text-xs text-muted-foreground">Each shop has its OWN subscription, products, chats & payments. Tap a pill to switch - the whole app follows.</p>
       </div>
       <div className="mt-6 rounded-3xl border border-accent/40 bg-accent/10 p-6">
-        <h2 className="font-display text-xl font-bold">➕ Add a product</h2>
+        <h2 className="flex items-center gap-2 font-display text-xl font-bold"><Plus className="size-5 text-accent-deep" /> Add a product</h2>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <div><Label>Product name</Label><Input value={np.title} onChange={(e) => setNp({ ...np, title: e.target.value })} placeholder="e.g. Fresh tomatoes (kiondo)" /></div>
           <div><Label>Price (KSh)</Label><Input type="number" value={np.price} onChange={(e) => setNp({ ...np, price: e.target.value })} placeholder="250" /></div>

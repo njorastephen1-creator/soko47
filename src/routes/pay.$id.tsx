@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Copy, ExternalLink, Phone } from "lucide-react";
+import { Banknote, Copy, ExternalLink, Phone, Smartphone } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -154,7 +154,7 @@ function PayHub() {
       <h1 className="font-display text-3xl font-bold">Pay your traders</h1>
       <p className="mt-1 text-sm text-muted-foreground">Money goes straight to each trader - Soko47 never touches it. Order for {order.buyer_name} · {order.buyer_phone}</p>
       <div className="mt-4 rounded-2xl border border-accent/40 bg-accent/10 p-4">
-        <Label>📲 M-Pesa number to receive the prompt</Label>
+        <Label className="flex items-center gap-1"><Smartphone className="size-4" /> M-Pesa number to receive the prompt</Label>
         <Input className="mt-2" value={mpesaPhone} onChange={(e) => setMpesaPhone(e.target.value)} placeholder="07XX XXX XXX" />
         <p className="mt-1 text-xs text-muted-foreground">The prompt will pop on this phone - edit if it is not your M-Pesa number.</p>
       </div>
@@ -179,7 +179,7 @@ function PayHub() {
           </div>
         ))}
       </div>
-      <Button size="lg" className="mt-6 w-full" onClick={async () => { await supabase.from("orders").update({ payment_status: "claimed", payment_method: "Direct (buyer claim)" }).eq("id", id); qc.invalidateQueries(); toast.success("Trader notified to verify on their M-Pesa"); }}>💵 I paid directly (cash / M-Pesa to trader)</Button>
+      <Button size="lg" className="mt-6 w-full" onClick={async () => { await supabase.from("orders").update({ payment_status: "claimed", payment_method: "Direct (buyer claim)" }).eq("id", id); qc.invalidateQueries(); toast.success("Trader notified to verify on their M-Pesa"); }}><Banknote className="size-4" /> I paid directly (cash / M-Pesa to trader)</Button>
       <div className="mt-6 flex gap-2">
         <Button asChild variant="outline" className="flex-1"><Link to="/orders">My orders</Link></Button>
         <Button asChild className="flex-1"><Link to="/browse">Continue shopping</Link></Button>

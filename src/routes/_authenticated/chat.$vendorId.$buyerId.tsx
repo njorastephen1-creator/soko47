@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Copy, Download, Pencil, Send, Trash2, X } from "lucide-react";
+import { Copy, Download, Lock, MessageCircle, Pencil, Send, Trash2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -81,7 +81,7 @@ function ChatThread() {
       return;
     }
     if (!body.trim() && !attach) return;
-    await supabase.from("messages").insert({ vendor_id: vendorId, buyer_id: buyerId, sender_id: session.user.id, sender_name: iAmVendor ? (vendor.display_name || vendor.shop_name) : (myProf && myProf.display_name ? myProf.display_name : (session.user.email || "Buyer")), body: body.trim() || (attach ? (attach.type === "video" ? "🎥 Video" : "📷 Photo") : ""), attachment_url: attach ? attach.url : null, attachment_type: attach ? attach.type : null });
+    await supabase.from("messages").insert({ vendor_id: vendorId, buyer_id: buyerId, sender_id: session.user.id, sender_name: iAmVendor ? (vendor.display_name || vendor.shop_name) : (myProf && myProf.display_name ? myProf.display_name : (session.user.email || "Buyer")), body: body.trim() || (attach ? (attach.type === "video" ? "Video" : "Photo") : ""), attachment_url: attach ? attach.url : null, attachment_type: attach ? attach.type : null });
     setBody(""); setAttach(null);
     qc.invalidateQueries();
   };
@@ -133,7 +133,7 @@ function ChatThread() {
         {otherPhoto ? <img src={otherPhoto} alt="" onClick={(e) => { e.stopPropagation(); setFullPhoto(otherPhoto); }} className="size-10 cursor-pointer rounded-full object-cover" /> : <span onClick={() => setShowProfile(!showProfile)} className="flex size-10 cursor-pointer items-center justify-center rounded-full bg-white/20 font-display font-bold">{otherInitial}</span>}
         <div className="flex-1 cursor-pointer" onClick={() => setShowProfile(!showProfile)}>
           <p className="font-semibold">{otherName}</p>
-          <p className="text-[11px] opacity-80">{selectedMsg ? (isMine ? "✉️ Your message selected" : "📨 Their message selected") : "Long-press / right-click a message"}</p>
+          <p className="text-[11px] opacity-80">{selectedMsg ? (isMine ? "Your message selected" : "Their message selected") : "Long-press / right-click a message"}</p>
         </div>
         {selectedMsg ? (
           <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
@@ -144,7 +144,7 @@ function ChatThread() {
             <button onClick={() => setSelectedId(null)} className="rounded-full p-2 hover:bg-white/10"><X className="size-5" /></button>
           </div>
         ) : (
-          <div className="text-xs opacity-70">💬</div>
+          <MessageCircle className="size-4 opacity-70" />
         )}
       </div>
       {showProfile ? (
@@ -155,7 +155,7 @@ function ChatThread() {
             {vendor && !iAmVendor ? <p className="text-xs text-muted-foreground">{vendor.market_name || "Soko47 trader"} · ⭐ {Number(vendor.rating_count) > 0 ? (Number(vendor.rating_sum) / Number(vendor.rating_count)).toFixed(1) : "New"}</p> : null}
             {vendor && iAmVendor ? <p className="text-xs text-muted-foreground">Your customer</p> : null}
             {vendor && !iAmVendor ? <a href={"/shop/" + vendor.slug} className="mt-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">Visit shop</a> : null}
-            <Link to="/profile" className="mt-2 rounded-xl border border-border px-4 py-2 text-sm font-semibold">✏️ Edit MY profile (only you can edit it)</Link>
+            <Link to="/profile" className="mt-2 rounded-xl border border-border px-4 py-2 text-sm font-semibold"><Pencil className="size-3.5" /> Edit my profile (only you can edit it)</Link>
           </div>
           <p className="mt-4 text-xs font-bold uppercase tracking-wide text-muted-foreground">Media in this chat</p>
           <div className="mt-2 grid grid-cols-3 gap-2">
@@ -164,7 +164,7 @@ function ChatThread() {
             ))}
             {(msgs || []).filter((m: any) => m.attachment_url).length === 0 && <p className="col-span-3 text-xs text-muted-foreground">No media shared yet.</p>}
           </div>
-          <button onClick={clearChat} className="mt-4 w-full rounded-xl border border-destructive/40 py-2 text-sm font-semibold text-destructive">🚫 Clear chat</button>
+          <button onClick={clearChat} className="mt-4 w-full rounded-xl border border-destructive/40 py-2 text-sm font-semibold text-destructive"><Trash2 className="size-4" /> Clear chat</button>
         </div>
       ) : null}
       <div className="flex-1 space-y-2 overflow-y-auto p-4" style={{ backgroundColor: "#efeae2", backgroundImage: "radial-gradient(#d8d2c6 1px, transparent 1px)", backgroundSize: "18px 18px" }}>
@@ -187,11 +187,11 @@ function ChatThread() {
             </div>
           );
         })}
-        {(msgs || []).length === 0 && <p className="pt-10 text-center text-sm text-muted-foreground">🔒 Say habari to start the chat.</p>}
+        {(msgs || []).length === 0 && <p className="flex items-center justify-center gap-1 pt-10 text-center text-sm text-muted-foreground"><Lock className="size-3.5" /> Messages are private - say habari to start.</p>}
         <div ref={endRef} />
       </div>
       <div className="rounded-b-2xl bg-[#f0f2f5] p-2" onClick={(e) => e.stopPropagation()}>
-        {attach ? <div className="mb-2 flex items-center gap-2 rounded-lg bg-white p-2 text-xs"><span className="flex-1 truncate">{attach.type === "video" ? "🎥 Ready" : "📷 Ready"}</span><button onClick={() => setAttach(null)}><X className="size-4" /></button></div> : null}
+        {attach ? <div className="mb-2 flex items-center gap-2 rounded-lg bg-white p-2 text-xs"><span className="flex-1 truncate">{attach.type === "video" ? "Video ready" : "Photo ready"}</span><button onClick={() => setAttach(null)}><X className="size-4" /></button></div> : null}
         <div className="flex items-center gap-2">
           <label className="flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-full bg-white shadow">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#075E54" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 17.98 8.83l-8.58 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48" /></svg>

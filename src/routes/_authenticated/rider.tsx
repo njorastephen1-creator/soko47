@@ -32,7 +32,7 @@ function RiderPage() {
     queryKey: ["rider-open"],
     enabled: !!rider,
     queryFn: async () => {
-      const { data } = await supabase.from("orders").select("*").eq("delivery_status", "requested").order("created_at", { ascending: false });
+      const { data } = await supabase.from("orders").select("*, vendors(shop_name, pay_phone)").eq("delivery_status", "requested").order("created_at", { ascending: false });
       return data || [];
     },
   });
@@ -40,7 +40,7 @@ function RiderPage() {
     queryKey: ["rider-mine", rider ? rider.id : "none"],
     enabled: !!rider,
     queryFn: async () => {
-      const { data } = await supabase.from("orders").select("*").eq("rider_id", rider!.id).order("created_at", { ascending: false });
+      const { data } = await supabase.from("orders").select("*, vendors(shop_name, pay_phone)").eq("rider_id", rider!.id).order("created_at", { ascending: false });
       return data || [];
     },
   });
@@ -179,7 +179,8 @@ function RiderPage() {
             <p className="mt-1 text-xs text-muted-foreground">Drop at: {o.delivery_location}</p>
             <div className="mt-2 flex gap-2">
               <Button size="sm" onClick={() => delivered(o)}>Mark delivered</Button>
-              <Button size="sm" variant="outline" onClick={() => { window.location.href = "tel:" + o.buyer_phone; }}><Phone className="size-4" /> Call</Button>
+              <Button size="sm" variant="outline" onClick={() => { window.location.href = "tel:" + o.buyer_phone; }}><Phone className="size-4" /> Call buyer</Button>
+              {o.vendors && o.vendors.pay_phone ? <Button size="sm" variant="outline" onClick={() => { window.location.href = "tel:" + o.vendors.pay_phone; }}><Phone className="size-4" /> Call seller</Button> : null}
             </div>
           </div>
         ))}

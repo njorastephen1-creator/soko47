@@ -16,6 +16,8 @@ function ShopPage() {
       return data;
     },
   });
+  const subscriptionActive = shop ? shop.status === "active" && (!shop.subscription_expires_at || new Date(shop.subscription_expires_at).getTime() > Date.now()) : false;
+  const subscriptionExpired = shop ? !!(shop.subscription_expires_at && new Date(shop.subscription_expires_at).getTime() <= Date.now()) : false;
   const { data: products } = useQuery({
     queryKey: ["shop-products", shop ? shop.id : ""],
     enabled: !!shop && subscriptionActive,
@@ -25,8 +27,6 @@ function ShopPage() {
     },
   });
   if (!shop) return <p className="py-16 text-center text-muted-foreground">Loading shop...</p>;
-  const subscriptionActive = shop.status === "active" && (!shop.subscription_expires_at || new Date(shop.subscription_expires_at).getTime() > Date.now());
-  const subscriptionExpired = shop.subscription_expires_at && new Date(shop.subscription_expires_at).getTime() <= Date.now();
   const county = getCounty(shop.county_slug);
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">

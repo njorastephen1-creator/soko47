@@ -142,7 +142,7 @@ function VendorDashboard() {
     </div>
   );
   const shopUrl = (typeof window !== "undefined" ? window.location.origin : "") + "/shop/" + vendor.slug;
-  const vendorSubActive = vendor.status === "active" && (!vendor.subscription_expires_at || new Date(vendor.subscription_expires_at).getTime() > Date.now());
+  const vendorSubActive = isAdmin || (vendor.status === "active" && (!vendor.subscription_expires_at || new Date(vendor.subscription_expires_at).getTime() > Date.now()));
   const county = getCounty(vendor.county_slug);
   const r = ratingOf(vendor);
   const markStatus = async (orderId: string, patch: any) => {

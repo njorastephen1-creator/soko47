@@ -93,7 +93,8 @@ function RiderPage() {
     setWatchId(id);
     toast.success("You are live on the map");
   };
-  const subActive = !!(rider.subscription_expires_at && new Date(rider.subscription_expires_at).getTime() > Date.now());
+  const isAdmin = session && session.user.email === "njorastephen1@gmail.com";
+  const subActive = isAdmin || !!(rider.subscription_expires_at && new Date(rider.subscription_expires_at).getTime() > Date.now());
   const payRiderSub = async () => {
     if (!payPhone.trim()) return toast.error("Enter your M-Pesa number");
     setPaying(true);

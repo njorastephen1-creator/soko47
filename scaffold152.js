@@ -1,4 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import fs from 'fs';
+
+// ---- Rewrite social.tsx with admin bypass + tags + description + trending + search ----
+fs.writeFileSync('src/routes/social.tsx', `import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bookmark, Heart, MessageCircle, Share2 } from "lucide-react";
 import { useState } from "react";
@@ -168,3 +171,22 @@ function SocialPage() {
     </div>
   );
 }
+`);
+console.log('Social rewritten: admin free + tags + description + trending + search');
+
+// ---- Admin bypass on vendor subscription gate ----
+let v = fs.readFileSync('src/routes/_authenticated/vendor.tsx', 'utf8');
+if (v.includes('const vendorSubActive = vendor.status === "active"')) {
+  v = v.split('const vendorSubActive = vendor.status === "active" && (!vendor.subscription_expires_at || new Date(vendor.subscription_expires_at).getTime() > Date.now());').join('const vendorSubActive = isAdmin || (vendor.status === "active" && (!vendor.subscription_expires_at || new Date(vendor.subscription_expires_at).getTime() > Date.now()));');
+  fs.writeFileSync('src/routes/_authenticated/vendor.tsx', v);
+  console.log('Vendor: admin bypass subscription');
+}
+
+// ---- Admin bypass on rider subscription gate ----
+let r = fs.readFileSync('src/routes/_authenticated/rider.tsx', 'utf8');
+if (!r.includes('const isAdmin = session')) {
+  r = r.split('  const subActive = !!(rider.subscription_expires_at && new Date(rider.subscription_expires_at).getTime() > Date.now());').join('  const isAdmin = session && session.user.email === "njorastephen1@gmail.com";\n  const subActive = isAdmin || !!(rider.subscription_expires_at && new Date(rider.subscription_expires_at).getTime() > Date.now());');
+  fs.writeFileSync('src/routes/_authenticated/rider.tsx', r);
+  console.log('Rider: admin bypass subscription');
+}
+console.log('DONE');

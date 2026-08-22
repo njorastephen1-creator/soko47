@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import fs from 'fs';
+fs.writeFileSync('src/routes/shop.$slug.tsx', `import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { BadgeCheck, MessageCircle, Phone, Store } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,7 +7,7 @@ import { getCounty } from "@/data/markets";
 import { FollowButton } from "@/components/follow-button";
 import { ReviewsSection } from "@/components/reviews";
 import { ProductCard, type ProductRow } from "@/components/product-card";
-export const Route = createFileRoute("/shop/$slug")({ component: ShopPage });
+export const Route = createFileRoute("/shop/\$slug")({ component: ShopPage });
 function ShopPage() {
   const { slug } = Route.useParams();
   const { data: shop } = useQuery({
@@ -64,3 +65,5 @@ function ShopPage() {
     </div>
   );
 }
+`);
+console.log('DONE: shop page rewritten with clean conditionals');

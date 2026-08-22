@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Copy, Download, Pencil, Send, Trash2, X } from "lucide-react";
+import { Check, CheckCheck, Copy, Download, Pencil, Send, Trash2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -182,6 +182,7 @@ function ChatThread() {
                 <div className="mt-1 flex items-center justify-end gap-1">
                   {m.edited_at ? <span className="text-[10px] italic text-muted-foreground">edited</span> : null}
                   <span className="text-[10px] text-muted-foreground">{new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                  {mine ? (m.read_at ? <CheckCheck className="size-3.5 text-[#53bdeb]" /> : <Check className="size-3.5 text-muted-foreground" />) : null}
                 </div>
               </div>
             </div>

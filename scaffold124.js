@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import fs from 'fs';
+fs.writeFileSync('src/components/chat-fab.tsx', `import { useEffect } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { MessageCircle } from "lucide-react";
@@ -42,3 +43,5 @@ export function ChatFab() {
     </Link>
   );
 }
+`);
+console.log('FIXED: chat-fab single session declaration');

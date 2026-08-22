@@ -162,6 +162,7 @@ export function SiteHeader() {
             <Link to="/browse" search={{ category: "hardware" }} className="whitespace-nowrap hover:underline">Hardware</Link>
             <Link to="/sell" className="whitespace-nowrap font-semibold text-accent hover:underline">Open a shop</Link>
             <Link to="/rider" className="shrink-0 text-sm font-semibold text-white/90 hover:text-white">Ride & earn</Link>
+            <Link to="/social" className="shrink-0 text-sm font-semibold text-white/90 hover:text-white">Social</Link>
           </div>
         </nav>
       {typeof window !== "undefined" && window.location.pathname === "/" ? <HomeAds /> : null}<ChatFab /><VendorBar /></header>
@@ -199,6 +200,7 @@ export function SiteHeader() {
               <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Sell</p>
               <Link to="/sell" onClick={() => setOpen(false)} className="block rounded-md px-2 py-1.5 text-sm hover:bg-secondary">Open a shop</Link>
             <Link to="/rider" className="shrink-0 text-sm font-semibold text-white/90 hover:text-white">Ride & earn</Link>
+            <Link to="/social" className="shrink-0 text-sm font-semibold text-white/90 hover:text-white">Social</Link>
               {myVendor && <Link to="/vendor" onClick={() => setOpen(false)} className="block rounded-md px-2 py-1.5 text-sm hover:bg-secondary">Shop dashboard</Link>}
               {myVendor && <Link to="/pos" onClick={() => setOpen(false)} className="block rounded-md px-2 py-1.5 text-sm hover:bg-secondary">POS & Receipts</Link>}
               {isAdmin && <Link to="/admin" onClick={() => setOpen(false)} className="block rounded-md px-2 py-1.5 text-sm hover:bg-secondary">Admin command center</Link>}
@@ -236,6 +238,7 @@ export function SiteFooter() {
           <div className="mt-2 space-y-1 text-sm opacity-80">
             <Link to="/sell" className="block hover:underline">Open a shop</Link>
             <Link to="/rider" className="shrink-0 text-sm font-semibold text-white/90 hover:text-white">Ride & earn</Link>
+            <Link to="/social" className="shrink-0 text-sm font-semibold text-white/90 hover:text-white">Social</Link>
             <Link to="/account" className="block hover:underline">My account</Link>
             <Link to="/settings" className="block hover:underline">Settings</Link>
             <Link to="/orders" className="block hover:underline">Orders</Link>

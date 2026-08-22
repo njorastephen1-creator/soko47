@@ -16,6 +16,7 @@ import { Route as BrowseRouteImport } from './routes/browse'
 import { Route as CartRouteImport } from './routes/cart'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as SellRouteImport } from './routes/sell'
+import { Route as SocialRouteImport } from './routes/social'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated/account'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedChatsRouteImport } from './routes/_authenticated/chats'
@@ -68,6 +69,11 @@ const CheckoutRoute = CheckoutRouteImport.update({
 const SellRoute = SellRouteImport.update({
   id: '/sell',
   path: '/sell',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SocialRoute = SocialRouteImport.update({
+  id: '/social',
+  path: '/social',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
@@ -174,6 +180,7 @@ export interface FileRoutesByFullPath {
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/sell': typeof SellRoute
+  '/social': typeof SocialRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/chats': typeof AuthenticatedChatsRoute
@@ -201,6 +208,7 @@ export interface FileRoutesByTo {
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/sell': typeof SellRoute
+  '/social': typeof SocialRoute
   '/account': typeof AuthenticatedAccountRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/chats': typeof AuthenticatedChatsRoute
@@ -230,6 +238,7 @@ export interface FileRoutesById {
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/sell': typeof SellRoute
+  '/social': typeof SocialRoute
   '/_authenticated/account': typeof AuthenticatedAccountRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/chats': typeof AuthenticatedChatsRoute
@@ -259,6 +268,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/checkout'
     | '/sell'
+    | '/social'
     | '/account'
     | '/admin'
     | '/chats'
@@ -286,6 +296,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/checkout'
     | '/sell'
+    | '/social'
     | '/account'
     | '/admin'
     | '/chats'
@@ -314,6 +325,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/checkout'
     | '/sell'
+    | '/social'
     | '/_authenticated/account'
     | '/_authenticated/admin'
     | '/_authenticated/chats'
@@ -343,6 +355,7 @@ export interface RootRouteChildren {
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
   SellRoute: typeof SellRoute
+  SocialRoute: typeof SocialRoute
   MarketsCountyRoute: typeof MarketsCountyRoute
   PayIdRoute: typeof PayIdRoute
   ProductIdRoute: typeof ProductIdRoute
@@ -399,6 +412,13 @@ declare module '@tanstack/react-router' {
       path: '/sell'
       fullPath: '/sell'
       preLoaderRoute: typeof SellRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/social': {
+      id: '/social'
+      path: '/social'
+      fullPath: '/social'
+      preLoaderRoute: typeof SocialRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/account': {
@@ -582,6 +602,7 @@ const rootRouteChildren: RootRouteChildren = {
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
   SellRoute: SellRoute,
+  SocialRoute: SocialRoute,
   MarketsCountyRoute: MarketsCountyRoute,
   PayIdRoute: PayIdRoute,
   ProductIdRoute: ProductIdRoute,

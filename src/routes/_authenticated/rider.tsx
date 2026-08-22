@@ -99,7 +99,7 @@ function RiderPage() {
     setPaying(true);
     setPayMsg("Sending STK prompt - check your phone...");
     try {
-      const d = await stkPush(payPhone.trim(), 300, "RIDER-" + rider.id.slice(0, 8), rider.name);
+      const d = await stkPush(payPhone.trim(), 300, "RIDER-" + rider.id.slice(0, 8), rider.name, rider.pay_phone || undefined);
       const invoice = d.invoice_id || d.id || (d.invoice && d.invoice.invoice_id);
       if (!invoice) throw new Error(d.error || "No invoice");
       setPayMsg("Prompt sent - enter PIN, then wait...");

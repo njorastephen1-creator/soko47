@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import fs from 'fs';
+fs.writeFileSync('src/routes/social.tsx', `import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { BadgeCheck, Bookmark, Eye, Flag, Heart, MessageCircle, Share2, Store, Trash2, UserCheck, UserPlus, Zap } from "lucide-react";
 import { useState } from "react";
@@ -140,3 +141,47 @@ function SocialPage() {
     </div>
   );
 }
+`);
+console.log('Social: full suite');
+
+// Admin: social moderation tab
+let a = fs.readFileSync('src/routes/_authenticated/admin.tsx', 'utf8');
+if (!a.includes('adm-social')) {
+  a = a.split('  const { data: trash } = useQuery(').join('  const { data: socialPosts } = useQuery({ queryKey: ["adm-social"], enabled: !!isAdm, queryFn: async () => { const { data } = await supabase.from("posts").select("*").order("created_at", { ascending: false }); return data || []; } });\n  const { data: reports } = useQuery({ queryKey: ["adm-reports"], enabled: !!isAdm, queryFn: async () => { const { data } = await supabase.from("post_reports").select("*").order("created_at", { ascending: false }); return data || []; } });\n  const { data: trash } = useQuery(');
+  a = a.split('  const purge = async (t: any) => {').join(`  const delPost = async (id: string) => { if (!window.confirm("Remove this ad?")) return; await supabase.from("posts").delete().eq("id", id); qc.invalidateQueries(); toast.success("Ad removed"); };
+  const dismissReport = async (id: string) => { await supabase.from("post_reports").delete().eq("id", id); qc.invalidateQueries(); toast.success("Report dismissed"); };
+  const purge = async (t: any) => {`);
+  a = a.split('const tabs = ["overview", "vendors", "listings", "orders", "receipts", "users", "riders", "map", "chats", "trash", "broadcast"];').join('const tabs = ["overview", "vendors", "listings", "orders", "receipts", "users", "riders", "map", "social", "chats", "trash", "broadcast"];');
+  a = a.split('      {tab === "broadcast" && (').join(`      {tab === "social" && (
+        <div className="mt-6 space-y-6">
+          <div className="rounded-2xl border border-border bg-card p-5">
+            <h2 className="font-display font-bold">Reported ads</h2>
+            <div className="mt-3 space-y-2">
+              {(reports || []).length === 0 && <p className="text-sm text-muted-foreground">No reports - community is clean.</p>}
+              {(reports || []).map((rp: any) => { const post = (socialPosts || []).find((sp: any) => sp.id === rp.post_id); return (
+                <div key={rp.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border p-3 text-sm">
+                  <span>{post ? (post.title || post.body || "ad") : "deleted ad"} · <span className="text-muted-foreground">"{rp.reason}"</span></span>
+                  <div className="flex gap-1">{post ? <Button size="sm" variant="outline" className="text-destructive" onClick={() => delPost(post.id)}>Remove ad</Button> : null}<Button size="sm" variant="outline" onClick={() => dismissReport(rp.id)}>Dismiss</Button></div>
+                </div>
+              ); })}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-border bg-card p-5">
+            <h2 className="font-display font-bold">All ads</h2>
+            <div className="mt-3 space-y-2">
+              {(socialPosts || []).slice(0, 30).map((p: any) => (
+                <div key={p.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border p-3 text-sm">
+                  <span className="font-medium">{p.author_name} · {p.title || p.body || p.kind}</span>
+                  <span className="text-xs text-muted-foreground">{p.views || 0} views · {p.kind}</span>
+                  <Button size="sm" variant="outline" className="text-destructive" onClick={() => delPost(p.id)}>Remove</Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+      {tab === "broadcast" && (`);
+  fs.writeFileSync('src/routes/_authenticated/admin.tsx', a);
+  console.log('Admin: social moderation tab');
+}
+console.log('DONE');

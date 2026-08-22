@@ -54,6 +54,8 @@ function AdminPage() {
   const { data: users } = useQuery({ queryKey: ["adm-users"], enabled: !!isAdm, queryFn: async () => { const { data } = await supabase.rpc("user_directory"); return data || []; } });
   const { data: msgs } = useQuery({ queryKey: ["adm-msgs"], enabled: !!isAdm, queryFn: async () => { const { data } = await supabase.from("messages").select("*").order("created_at", { ascending: false }); return data || []; } });
   const { data: activeDel } = useQuery({ queryKey: ["adm-active"], enabled: !!isAdm, refetchInterval: 8000, queryFn: async () => { const { data } = await supabase.from("orders").select("*, vendors(shop_name, lat, lng)").in("delivery_status", ["requested", "accepted"]).order("created_at", { ascending: false }); return data || []; } });
+  const { data: socialPosts } = useQuery({ queryKey: ["adm-social"], enabled: !!isAdm, queryFn: async () => { const { data } = await supabase.from("posts").select("*").order("created_at", { ascending: false }); return data || []; } });
+  const { data: reports } = useQuery({ queryKey: ["adm-reports"], enabled: !!isAdm, queryFn: async () => { const { data } = await supabase.from("post_reports").select("*").order("created_at", { ascending: false }); return data || []; } });
   const { data: trash } = useQuery({ queryKey: ["adm-trash"], enabled: !!isAdm, queryFn: async () => { const { data } = await supabase.from("trash").select("*").order("deleted_at", { ascending: false }); return data || []; } });
   if (!isAdm) return <p className="py-16 text-center text-muted-foreground">Admins only.</p>;
   const setVendor = async (id: string, patch: any, msg: string) => { await supabase.from("vendors").update(patch).eq("id", id); qc.invalidateQueries(); toast.success(msg); };
@@ -91,6 +93,8 @@ function AdminPage() {
     qc.invalidateQueries();
     toast.success("Restored");
   };
+  const delPost = async (id: string) => { if (!window.confirm("Remove this ad?")) return; await supabase.from("posts").delete().eq("id", id); qc.invalidateQueries(); toast.success("Ad removed"); };
+  const dismissReport = async (id: string) => { await supabase.from("post_reports").delete().eq("id", id); qc.invalidateQueries(); toast.success("Report dismissed"); };
   const purge = async (t: any) => {
     if (!window.confirm("Purge forever? This CANNOT be undone.")) return;
     await supabase.from("trash").delete().eq("id", t.id);
@@ -126,7 +130,7 @@ function AdminPage() {
   });
   const threads = Object.values(threadsMap).sort((a: any, b: any) => new Date(b.lastAt).getTime() - new Date(a.lastAt).getTime());
   const threadMsgs = thread ? (msgs || []).filter((m: any) => m.vendor_id === thread.vendor_id && m.buyer_id === thread.buyer_id) : [];
-  const tabs = ["overview", "vendors", "listings", "orders", "receipts", "users", "riders", "map", "chats", "trash", "broadcast"];
+  const tabs = ["overview", "vendors", "listings", "orders", "receipts", "users", "riders", "map", "social", "chats", "trash", "broadcast"];
   const card = "rounded-2xl border border-border bg-card p-5";
   const th = "border-b border-border bg-secondary text-left";
   const td = "p-3";
@@ -385,6 +389,34 @@ function AdminPage() {
         <div className="mt-6 space-y-3">
           <p className="text-sm text-muted-foreground">Live oversight - every online rider (green) and every open/active delivery pickup (teal), refreshed every 8 seconds.</p>
           <LiveMap height="480px" points={[...(riders || []).filter((r: any) => r.lat != null).map((r: any) => ({ lat: Number(r.lat), lng: Number(r.lng), color: "#25D366", label: "Rider: " + r.name })), ...(activeDel || []).filter((o: any) => o.vendors && o.vendors.lat != null).map((o: any) => ({ lat: Number(o.vendors.lat), lng: Number(o.vendors.lng), color: "#0f766e", label: (o.delivery_status === "accepted" ? "ACTIVE: " : "OPEN: ") + o.buyer_name }))]} />
+        </div>
+      )}
+      {tab === "social" && (
+        <div className="mt-6 space-y-6">
+          <div className="rounded-2xl border border-border bg-card p-5">
+            <h2 className="font-display font-bold">Reported ads</h2>
+            <div className="mt-3 space-y-2">
+              {(reports || []).length === 0 && <p className="text-sm text-muted-foreground">No reports - community is clean.</p>}
+              {(reports || []).map((rp: any) => { const post = (socialPosts || []).find((sp: any) => sp.id === rp.post_id); return (
+                <div key={rp.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border p-3 text-sm">
+                  <span>{post ? (post.title || post.body || "ad") : "deleted ad"} · <span className="text-muted-foreground">"{rp.reason}"</span></span>
+                  <div className="flex gap-1">{post ? <Button size="sm" variant="outline" className="text-destructive" onClick={() => delPost(post.id)}>Remove ad</Button> : null}<Button size="sm" variant="outline" onClick={() => dismissReport(rp.id)}>Dismiss</Button></div>
+                </div>
+              ); })}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-border bg-card p-5">
+            <h2 className="font-display font-bold">All ads</h2>
+            <div className="mt-3 space-y-2">
+              {(socialPosts || []).slice(0, 30).map((p: any) => (
+                <div key={p.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border p-3 text-sm">
+                  <span className="font-medium">{p.author_name} · {p.title || p.body || p.kind}</span>
+                  <span className="text-xs text-muted-foreground">{p.views || 0} views · {p.kind}</span>
+                  <Button size="sm" variant="outline" className="text-destructive" onClick={() => delPost(p.id)}>Remove</Button>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
       {tab === "broadcast" && (

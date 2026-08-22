@@ -19,7 +19,7 @@ function ProStudio() {
   const [msg, setMsg] = useState("");
   const [adTitle, setAdTitle] = useState("");
   const [adImg, setAdImg] = useState("");
-  const { vendor } = useMyVendor();
+  const { vendor, loading } = useMyVendor();
   const { data: stats } = useQuery({
     queryKey: ["pro-stats", vendor ? vendor.id : "none"],
     enabled: !!vendor,
@@ -36,6 +36,7 @@ function ProStudio() {
       return data || [];
     },
   });
+  if (loading) return <p className="py-16 text-center text-muted-foreground">Loading Pro Studio...</p>;
   if (!vendor) return <p className="py-16 text-center text-muted-foreground">Pro Studio is for traders - open a shop first.</p>;
   if (vendor.subscription_plan !== "pro") return (
     <div className="mx-auto max-w-md px-4 py-16 text-center">

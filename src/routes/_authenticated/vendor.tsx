@@ -132,10 +132,7 @@ function VendorDashboard() {
     qc.invalidateQueries();
     toast.success("Order deleted");
   };
-  if (!loading && !vendor) {
-    if (typeof window !== "undefined") setTimeout(() => navigate({ to: "/" }), 50);
-    return <p className="py-16 text-center text-muted-foreground">Redirecting...</p>;
-  }
+  if (loading) return <p className="py-16 text-center text-muted-foreground">Loading your dashboard...</p>;
   if (!vendor) return (
     <div className="mx-auto max-w-md px-4 py-16 text-center">
       <Store className="mx-auto size-12 text-accent" />

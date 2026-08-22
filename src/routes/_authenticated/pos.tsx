@@ -80,7 +80,8 @@ function PosPage() {
     qc.invalidateQueries();
     toast.success("Receipt deleted");
   };
-  if (!mvLoading && !myVendor) { if (typeof window !== "undefined") setTimeout(() => navigate({ to: "/" }), 50); return <p className="py-16 text-center text-muted-foreground">Redirecting...</p>; }
+  if (mvLoading) return <p className="py-16 text-center text-muted-foreground">Loading POS...</p>;
+  if (!myVendor) return <p className="py-16 text-center text-muted-foreground">POS is for traders - open a shop first.</p>;
   const shopUrl = typeof window !== "undefined" ? window.location.origin + "/shop/" + myVendor.slug : "";
   const total = lines.reduce((s, l) => s + l.price * l.qty, 0);
   const addLine = (t: string, p: number) => setLines((prev) => {

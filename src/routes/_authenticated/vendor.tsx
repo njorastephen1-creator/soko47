@@ -40,13 +40,13 @@ function VendorDashboard() {
   const [prodFilter, setProdFilter] = useState("all");
   const [prodSearch, setProdSearch] = useState("");
   const [offers, setOffers] = useState<any>({});
-  const [np, setNp] = useState<any>({ title: "", price: "", stock: "", category: "produce", unit: "piece", image: "", desc: "" });
+  const [np, setNp] = useState<any>({ title: "", price: "", offer: "", stock: "", category: "produce", unit: "piece", condition: "brand new", image: "", imageUrl: "", brand: "", desc: "" });
   const addProduct = async () => {
     if (!vendor) return;
     if (np.title.trim().length < 2) return toast.error("Give the product a name");
     const price = Number(np.price);
     if (!price || price <= 0) return toast.error("Set a selling price");
-    const { error } = await supabase.from("products").insert({ vendor_id: vendor.id, title: np.title.trim(), price_kes: price, stock: Number(np.stock) || 0, category_slug: np.category, unit: np.unit || "piece", image_url: np.image || null, description: np.desc.trim() || null, is_active: true });
+    const { error } = await supabase.from("products").insert({ vendor_id: vendor.id, title: np.title.trim(), price_kes: price, stock: Number(np.stock) || 0, category_slug: np.category, unit: np.unit || "piece", condition: np.condition, brand: np.brand.trim() || null, offer_price_kes: Number(np.offer) > 0 ? Number(np.offer) : null, image_url: np.image || np.imageUrl.trim() || null, description: np.desc.trim() || null, is_active: true });
     if (error) return toast.error(error.message);
     setNp({ title: "", price: "", stock: "", category: "produce", unit: "piece", image: "", desc: "" });
     qc.invalidateQueries();
@@ -261,16 +261,29 @@ function VendorDashboard() {
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <div><Label>Product name</Label><Input value={np.title} onChange={(e) => setNp({ ...np, title: e.target.value })} placeholder="e.g. Fresh tomatoes (kiondo)" /></div>
           <div><Label>Price (KSh)</Label><Input type="number" value={np.price} onChange={(e) => setNp({ ...np, price: e.target.value })} placeholder="250" /></div>
+          <div><Label>Offer price (optional)</Label><Input type="number" value={np.offer} onChange={(e) => setNp({ ...np, offer: e.target.value })} placeholder="Original stays crossed out" /></div>
           <div><Label>Stock</Label><Input type="number" value={np.stock} onChange={(e) => setNp({ ...np, stock: e.target.value })} placeholder="40" /></div>
-          <div className="sm:col-span-2"><Label>Category</Label>
+          <div><Label>Condition</Label>
+            <div className="mt-1 flex gap-2">
+              {["brand new", "used"].map((cd) => (<button key={cd} type="button" onClick={() => setNp({ ...np, condition: cd })} className={"rounded-full px-3 py-1.5 text-xs font-semibold capitalize " + (np.condition === cd ? "bg-primary text-primary-foreground" : "bg-secondary")}>{cd}</button>))}
+            </div>
+          </div>
+          <div><Label>Unit</Label>
             <div className="mt-1 flex flex-wrap gap-2">
-              {[["produce", "Fresh Produce"], ["electronics", "Electronics"], ["fashion", "Fashion"], ["household", "Household"], ["other", "Other"]].map((c: any) => (
+              {["piece", "kg", "kiondo", "crate", "dozen", "bag"].map((u) => (<button key={u} type="button" onClick={() => setNp({ ...np, unit: u })} className={"rounded-full px-3 py-1.5 text-xs font-semibold " + (np.unit === u ? "bg-primary text-primary-foreground" : "bg-secondary")}>{u}</button>))}
+            </div>
+          </div>
+          <div className="sm:col-span-2"><Label>Category (10 like Jiji)</Label>
+            <div className="mt-1 flex flex-wrap gap-2">
+              {[["produce", "Fresh Produce"], ["electronics", "Electronics"], ["fashion", "Fashion"], ["household", "Household"], ["furniture", "Furniture"], ["beauty", "Beauty"], ["hardware", "Hardware & Tools"], ["services", "Services"], ["repair", "Repair & Construction"], ["other", "Other"]].map((c: any) => (
                 <button key={c[0]} type="button" onClick={() => setNp({ ...np, category: c[0] })} className={"rounded-full px-3 py-1.5 text-xs font-semibold " + (np.category === c[0] ? "bg-primary text-primary-foreground" : "bg-secondary")}>{c[1]}</button>
               ))}
             </div>
           </div>
-          <div className="sm:col-span-2"><Label>Photo</Label><ImageUpload value={np.image} onChange={(url: string) => setNp({ ...np, image: url })} /></div>
-          <div className="sm:col-span-2"><Label>Description (optional)</Label><Textarea value={np.desc} onChange={(e) => setNp({ ...np, desc: e.target.value })} rows={2} placeholder="Size, quality, where it comes from..." /></div>
+          <div><Label>Upload photo</Label><ImageUpload value={np.image} onChange={(url: string) => setNp({ ...np, image: url })} /></div>
+          <div><Label>Or paste photo link</Label><Input value={np.imageUrl} onChange={(e) => setNp({ ...np, imageUrl: e.target.value })} placeholder="https://..." /></div>
+          <div className="sm:col-span-2"><Label>Brand (optional)</Label><Input value={np.brand} onChange={(e) => setNp({ ...np, brand: e.target.value })} placeholder="e.g. Samsung" /></div>
+          <div className="sm:col-span-2"><Label>Description</Label><Textarea value={np.desc} onChange={(e) => setNp({ ...np, desc: e.target.value })} rows={3} placeholder="Size, quality, where it comes from..." /></div>
         </div>
         <Button className="mt-3" onClick={addProduct}>Put on the market</Button>
       </div>

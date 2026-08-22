@@ -155,7 +155,7 @@ function ChatThread() {
             {vendor && !iAmVendor ? <p className="text-xs text-muted-foreground">{vendor.market_name || "Soko47 trader"} · ⭐ {Number(vendor.rating_count) > 0 ? (Number(vendor.rating_sum) / Number(vendor.rating_count)).toFixed(1) : "New"}</p> : null}
             {vendor && iAmVendor ? <p className="text-xs text-muted-foreground">Your customer</p> : null}
             {vendor && !iAmVendor ? <a href={"/shop/" + vendor.slug} className="mt-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">Visit shop</a> : null}
-            <Link to="/profile" className="mt-2 rounded-xl border border-border px-4 py-2 text-sm font-semibold">✏️ Edit my profile</Link>
+            <Link to="/profile" className="mt-2 rounded-xl border border-border px-4 py-2 text-sm font-semibold">✏️ Edit MY profile (only you can edit it)</Link>
           </div>
           <p className="mt-4 text-xs font-bold uppercase tracking-wide text-muted-foreground">Media in this chat</p>
           <div className="mt-2 grid grid-cols-3 gap-2">

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { MessageCircle } from "lucide-react";
@@ -5,6 +6,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/use-session";
 import { useMyVendor } from "@/lib/my-vendor";
 export function ChatFab() {
+  const { session } = useSession();
+  useEffect(() => {
+    if (!session) return;
+    const beat = () => { supabase.from("user_profiles").upsert({ user_id: session.user.id, last_seen: new Date().toISOString() }); };
+    beat();
+    const t = setInterval(beat, 60000);
+    return () => clearInterval(t);
+  }, [session]);
   const { session } = useSession();
   const { vendor } = useMyVendor();
   const { data: unread } = useQuery({

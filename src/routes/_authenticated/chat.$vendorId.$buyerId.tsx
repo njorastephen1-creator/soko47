@@ -36,7 +36,7 @@ function ChatThread() {
   const { data: buyerProf } = useQuery({
     queryKey: ["buyer-prof", buyerId],
     queryFn: async () => {
-      const { data } = await supabase.from("user_profiles").select("display_name, photo_url").eq("user_id", buyerId).maybeSingle();
+      const { data } = await supabase.from("user_profiles").select("display_name, photo_url, last_seen").eq("user_id", buyerId).maybeSingle();
       return data || null;
     },
   });
@@ -45,6 +45,14 @@ function ChatThread() {
     enabled: !!session,
     queryFn: async () => {
       const { data } = await supabase.from("user_profiles").select("display_name").eq("user_id", session!.user.id).maybeSingle();
+      return data || null;
+    },
+  });
+  const { data: vendorUserProf } = useQuery({
+    queryKey: ["vendor-user-prof", vendor ? vendor.user_id : "none"],
+    enabled: !!vendor,
+    queryFn: async () => {
+      const { data } = await supabase.from("user_profiles").select("last_seen").eq("user_id", vendor!.user_id).maybeSingle();
       return data || null;
     },
   });
@@ -61,6 +69,8 @@ function ChatThread() {
   const iAmVendor = vendor && vendor.user_id === session.user.id;
   const otherName = iAmVendor ? (buyerProf && buyerProf.display_name ? buyerProf.display_name : (((msgs || []).find((m: any) => m.sender_id !== myId) || {}).sender_name || "Customer")) : (vendor ? (vendor.display_name || vendor.shop_name) : "Chat");
   const otherPhoto = iAmVendor ? (buyerProf ? buyerProf.photo_url : null) : (vendor ? vendor.profile_image_url : null);
+  const otherLastSeen = iAmVendor ? (buyerProf ? buyerProf.last_seen : null) : (vendorUserProf ? vendorUserProf.last_seen : null);
+  const onlineNow = otherLastSeen && Date.now() - new Date(otherLastSeen).getTime() < 120000;
   const otherInitial = otherName.slice(0, 1).toUpperCase();
   const onFile = async (e: any) => {
     const f = e.target.files && e.target.files[0];
@@ -133,7 +143,7 @@ function ChatThread() {
         {otherPhoto ? <img src={otherPhoto} alt="" onClick={(e) => { e.stopPropagation(); setFullPhoto(otherPhoto); }} className="size-10 cursor-pointer rounded-full object-cover" /> : <span onClick={() => setShowProfile(!showProfile)} className="flex size-10 cursor-pointer items-center justify-center rounded-full bg-white/20 font-display font-bold">{otherInitial}</span>}
         <div className="flex-1 cursor-pointer" onClick={() => setShowProfile(!showProfile)}>
           <p className="font-semibold">{otherName}</p>
-          <p className="text-[11px] opacity-80">{selectedMsg ? (isMine ? "Your message selected" : "Their message selected") : "Long-press / right-click a message"}</p>
+          <p className="text-[11px] opacity-80">{selectedMsg ? (isMine ? "Your message selected" : "Their message selected") : (onlineNow ? "online" : (otherLastSeen ? "last seen " + new Date(otherLastSeen).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "Long-press / right-click a message"))}</p>
         </div>
         {selectedMsg ? (
           <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
@@ -182,7 +192,7 @@ function ChatThread() {
                 <div className="mt-1 flex items-center justify-end gap-1">
                   {m.edited_at ? <span className="text-[10px] italic text-muted-foreground">edited</span> : null}
                   <span className="text-[10px] text-muted-foreground">{new Date(m.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
-                  {mine ? (m.read_at ? <CheckCheck className="size-3.5 text-[#53bdeb]" /> : <Check className="size-3.5 text-muted-foreground" />) : null}
+                  {mine ? (m.read_at ? <CheckCheck className="size-3.5 text-[#53bdeb]" /> : (otherLastSeen && new Date(otherLastSeen).getTime() > new Date(m.created_at).getTime() ? <CheckCheck className="size-3.5 text-muted-foreground" /> : <Check className="size-3.5 text-muted-foreground" />)) : null}
                 </div>
               </div>
             </div>

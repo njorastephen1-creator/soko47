@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import fs from 'fs';
+fs.writeFileSync('src/routes/_authenticated/chats.tsx', `import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, Store } from "lucide-react";
 import { useState } from "react";
@@ -106,3 +107,32 @@ function ChatsInbox() {
     </div>
   );
 }
+`);
+console.log('Inbox: shop-first WhatsApp-Web style');
+let fab = fs.readFileSync('src/components/chat-fab.tsx', 'utf8');
+if (!fab.includes('last_seen')) {
+  fab = fab.split('import { Link } from "@tanstack/react-router";').join('import { useEffect } from "react";\nimport { Link } from "@tanstack/react-router";');
+  fab = fab.split('export function ChatFab() {').join('export function ChatFab() {\n  const { session } = useSession();\n  useEffect(() => {\n    if (!session) return;\n    const beat = () => { supabase.from("user_profiles").upsert({ user_id: session.user.id, last_seen: new Date().toISOString() }); };\n    beat();\n    const t = setInterval(beat, 60000);\n    return () => clearInterval(t);\n  }, [session]);');
+  fab = fab.split('export function ChatFab() {\n  const { session } = useSession();\n  const { session } = useSession();').join('export function ChatFab() {\n  const { session } = useSession();');
+  fs.writeFileSync('src/components/chat-fab.tsx', fab);
+  console.log('Presence heartbeat added');
+}
+let chat = fs.readFileSync('src/routes/_authenticated/chat.$vendorId.$buyerId.tsx', 'utf8');
+if (!chat.includes('vendorUserProf')) {
+  chat = chat.split('.select("display_name, photo_url").eq("user_id", buyerId)').join('.select("display_name, photo_url, last_seen").eq("user_id", buyerId)');
+  chat = chat.split('  useEffect(() => { if (endRef.current) endRef.current.scrollIntoView({ behavior: "smooth" }); }, [msgs]);').join(`  const { data: vendorUserProf } = useQuery({
+    queryKey: ["vendor-user-prof", vendor ? vendor.user_id : "none"],
+    enabled: !!vendor,
+    queryFn: async () => {
+      const { data } = await supabase.from("user_profiles").select("last_seen").eq("user_id", vendor!.user_id).maybeSingle();
+      return data || null;
+    },
+  });
+  useEffect(() => { if (endRef.current) endRef.current.scrollIntoView({ behavior: "smooth" }); }, [msgs]);`);
+  chat = chat.split('const otherPhoto = iAmVendor ? (buyerProf ? buyerProf.photo_url : null) : (vendor ? vendor.profile_image_url : null);').join('const otherPhoto = iAmVendor ? (buyerProf ? buyerProf.photo_url : null) : (vendor ? vendor.profile_image_url : null);\n  const otherLastSeen = iAmVendor ? (buyerProf ? buyerProf.last_seen : null) : (vendorUserProf ? vendorUserProf.last_seen : null);\n  const onlineNow = otherLastSeen && Date.now() - new Date(otherLastSeen).getTime() < 120000;');
+  chat = chat.split('{selectedMsg ? (isMine ? "Your message selected" : "Their message selected") : "Long-press / right-click a message"}').join('{selectedMsg ? (isMine ? "Your message selected" : "Their message selected") : (onlineNow ? "online" : (otherLastSeen ? "last seen " + new Date(otherLastSeen).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "Long-press / right-click a message"))}');
+  chat = chat.split('{mine ? (m.read_at ? <CheckCheck className="size-3.5 text-[#53bdeb]" /> : <Check className="size-3.5 text-muted-foreground" />) : null}').join('{mine ? (m.read_at ? <CheckCheck className="size-3.5 text-[#53bdeb]" /> : (otherLastSeen && new Date(otherLastSeen).getTime() > new Date(m.created_at).getTime() ? <CheckCheck className="size-3.5 text-muted-foreground" /> : <Check className="size-3.5 text-muted-foreground" />)) : null}');
+  fs.writeFileSync('src/routes/_authenticated/chat.$vendorId.$buyerId.tsx', chat);
+  console.log('Ticks: 3-state + online/last seen');
+}
+console.log('DONE');

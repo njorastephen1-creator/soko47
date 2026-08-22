@@ -53,7 +53,7 @@ function RiderPage() {
     <div className="mx-auto max-w-md px-4 py-12">
       <Bike className="size-10 text-accent" />
       <h1 className="mt-2 font-display text-2xl font-bold">Ride & earn with Soko47</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Deliver orders, earn KSh 135 per drop (platform keeps KSh 15). Paid straight to your M-Pesa.</p>
+      <p className="mt-1 text-sm text-muted-foreground">Earn per delivery based on distance - base KSh 100 + KSh 50/km. You keep 90%, the platform keeps 10%. Paid straight to your M-Pesa.</p>
       <div className="mt-4 space-y-3 rounded-2xl border border-border bg-card p-5">
         <div><Label>Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
         <div><Label>Phone</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="07XX..." /></div>
@@ -138,11 +138,17 @@ function RiderPage() {
     const { error } = await supabase.from("orders").update({ delivery_status: "delivered", status: "fulfilled" }).eq("id", o.id);
     if (error) return toast.error(error.message);
     qc.invalidateQueries();
-    toast.success("Delivered! KSh 135 earned.");
+    toast.success("Delivered! Your 90% fare is on the way to your M-Pesa.");
   };
+  const feeFor = (o: any) => {
+    if (o.delivery_fee_kes) return Number(o.delivery_fee_kes);
+    if (o.pickup_lat != null && o.pickup_lng != null && o.delivery_lat != null && o.delivery_lng != null) return feeForKm(haversineKm(Number(o.pickup_lat), Number(o.pickup_lng), Number(o.delivery_lat), Number(o.delivery_lng)));
+    return 150;
+  };
+  const earnFor = (o: any) => Math.round(feeFor(o) * 0.9);
   const active = (mine || []).filter((o: any) => o.delivery_status === "accepted");
   const done = (mine || []).filter((o: any) => o.delivery_status === "delivered");
-  const earnings = done.length * 135;
+  const earnings = done.reduce((s: number, o: any) => s + earnFor(o), 0);
   const hPages = Math.max(0, Math.ceil(done.length / 15) - 1);
   return (
     <div className="mx-auto max-w-3xl px-4 pb-28 pt-8 md:pb-8">
@@ -155,7 +161,7 @@ function RiderPage() {
         {watchId != null ? <Button variant="outline" onClick={toggleShare}>Stop sharing location</Button> : <Button variant="outline" onClick={toggleShare}>Share live location</Button>}
       </div>
       <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="rounded-2xl bg-secondary p-3"><Wallet className="size-4 text-accent-deep" /><p className="mt-1 font-display text-xl font-extrabold">{formatKes(earnings)}</p><p className="text-xs text-muted-foreground">Earned (KSh 135/drop)</p></div>
+        <div className="rounded-2xl bg-secondary p-3"><Wallet className="size-4 text-accent-deep" /><p className="mt-1 font-display text-xl font-extrabold">{formatKes(earnings)}</p><p className="text-xs text-muted-foreground">Earned (90% of fare)</p></div>
         <div className="rounded-2xl bg-secondary p-3"><CheckCircle2 className="size-4 text-accent-deep" /><p className="mt-1 font-display text-xl font-extrabold">{done.length}</p><p className="text-xs text-muted-foreground">Delivered</p></div>
         <div className="rounded-2xl bg-secondary p-3"><Package className="size-4 text-accent-deep" /><p className="mt-1 font-display text-xl font-extrabold">{active.length}</p><p className="text-xs text-muted-foreground">Active now</p></div>
         <div className="rounded-2xl bg-secondary p-3"><Bike className="size-4 text-accent-deep" /><p className="mt-1 font-display text-xl font-extrabold capitalize">{rider.status}</p><p className="text-xs text-muted-foreground">Status</p></div>
@@ -174,7 +180,7 @@ function RiderPage() {
         <div className="mt-4 rounded-2xl border border-success/40 bg-success/10 p-3 text-sm font-semibold text-success">Subscription active until {new Date(rider.subscription_expires_at).toLocaleDateString()}</div>
       )}
       {!online ? <div className="mt-4 rounded-2xl border border-warning/40 bg-warning/10 p-3 text-sm font-semibold">You are offline - go online to receive delivery requests.</div> : null}
-      <h2 className="mt-6 font-semibold">Open deliveries (KSh 150 fee)</h2>
+      <h2 className="mt-6 font-semibold">Open deliveries (fare by distance)</h2>
       <div className="mt-2 space-y-2">
         {(open || []).length === 0 && <p className="text-sm text-muted-foreground">No open requests right now.</p>}
         {(open || []).map((o: any) => (
@@ -184,7 +190,7 @@ function RiderPage() {
               <span className="rounded-full bg-accent/15 px-2 py-0.5 text-xs font-bold text-accent-deep">{formatKes(135)} for you</span>
             </div>
             <p className="mt-1 text-xs text-muted-foreground">Drop at: {o.delivery_location}</p>
-            {myPos && o.vendors && o.vendors.lat != null ? (() => { const km = haversineKm(myPos.lat, myPos.lng, Number(o.vendors.lat), Number(o.vendors.lng)); return <p className="mt-1 text-xs font-semibold text-accent-deep">{km.toFixed(1)} km away · ~{etaMin(km)} min · fare {formatKes(feeForKm(km))}</p>; })() : null}
+            {myPos && o.vendors && o.vendors.lat != null ? (() => { const km = haversineKm(myPos.lat, myPos.lng, Number(o.vendors.lat), Number(o.vendors.lng)); return <p className="mt-1 text-xs font-semibold text-accent-deep">{km.toFixed(1)} km · ~{etaMin(km)} min · fare {formatKes(feeForKm(km))} · you earn {formatKes(Math.round(feeForKm(km) * 0.9))}</p>; })() : null}
             <div className="mt-2 flex gap-2">
               <Button size="sm" disabled={!online || !subActive} onClick={() => accept(o)}>Accept delivery</Button>
               <Button size="sm" variant="outline" asChild={false} onClick={() => { window.location.href = "tel:" + o.buyer_phone; }}><Phone className="size-4" /> Call</Button>
@@ -214,7 +220,7 @@ function RiderPage() {
         {done.slice(hPage * 15, hPage * 15 + 15).map((o: any) => (
           <div key={o.id} className="flex items-center justify-between rounded-xl border border-border bg-card p-3 text-sm">
             <span>{new Date(o.created_at).toLocaleDateString()} · {o.buyer_name} · {o.delivery_location}</span>
-            <span className="font-semibold text-success">+{formatKes(135)}</span>
+            <span className="font-semibold text-success">+{formatKes(earnFor(o))}</span>
           </div>
         ))}
         {done.length === 0 && <p className="text-sm text-muted-foreground">No completed deliveries yet.</p>}

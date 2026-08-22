@@ -18,6 +18,10 @@ function ChatThread() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showProfile, setShowProfile] = useState(false);
   const [fullPhoto, setFullPhoto] = useState<string | null>(null);
+  const [otherTyping, setOtherTyping] = useState(false);
+  const chanRef = useRef<any>(null);
+  const lastTyping = useRef(0);
+  const typingTimer = useRef<any>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
   const { data: msgs } = useQuery({
     queryKey: ["thread", vendorId, buyerId],
@@ -56,6 +60,20 @@ function ChatThread() {
       return data || null;
     },
   });
+  useEffect(() => {
+    if (!session) return;
+    const chan = supabase.channel("typing-" + vendorId + "-" + buyerId);
+    chan.on("broadcast", { event: "typing" }, (msg: any) => {
+      if (msg.payload && msg.payload.from !== session.user.id) {
+        setOtherTyping(true);
+        if (typingTimer.current) clearTimeout(typingTimer.current);
+        typingTimer.current = setTimeout(() => setOtherTyping(false), 2500);
+      }
+    });
+    chan.subscribe();
+    chanRef.current = chan;
+    return () => { supabase.removeChannel(chan); };
+  }, [vendorId, buyerId, session]);
   useEffect(() => { if (endRef.current) endRef.current.scrollIntoView({ behavior: "smooth" }); }, [msgs]);
   useEffect(() => {
     if (!msgs || !session) return;
@@ -143,7 +161,7 @@ function ChatThread() {
         {otherPhoto ? <img src={otherPhoto} alt="" onClick={(e) => { e.stopPropagation(); setFullPhoto(otherPhoto); }} className="size-10 cursor-pointer rounded-full object-cover" /> : <span onClick={() => setShowProfile(!showProfile)} className="flex size-10 cursor-pointer items-center justify-center rounded-full bg-white/20 font-display font-bold">{otherInitial}</span>}
         <div className="flex-1 cursor-pointer" onClick={() => setShowProfile(!showProfile)}>
           <p className="font-semibold">{otherName}</p>
-          <p className="text-[11px] opacity-80">{selectedMsg ? (isMine ? "Your message selected" : "Their message selected") : (onlineNow ? "online" : (otherLastSeen ? "last seen " + new Date(otherLastSeen).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "Long-press / right-click a message"))}</p>
+          <p className="text-[11px] opacity-80">{selectedMsg ? (isMine ? "Your message selected" : "Their message selected") : (otherTyping ? "typing..." : (onlineNow ? "online" : (otherLastSeen ? "last seen " + new Date(otherLastSeen).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "Long-press / right-click a message"))}</p>
         </div>
         {selectedMsg ? (
           <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
@@ -208,7 +226,7 @@ function ChatThread() {
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#075E54" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 17.98 8.83l-8.58 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48" /></svg>
             <input type="file" accept="image/*,video/*" className="hidden" onChange={onFile} />
           </label>
-          <Input className="rounded-full bg-white" value={body} onChange={(e) => setBody(e.target.value)} placeholder={editingId ? "Editing..." : "Type a message"} onKeyDown={(e) => { if (e.key === "Enter") send(); }} />
+          <Input className="rounded-full bg-white" value={body} onChange={(e) => { setBody(e.target.value); const now = Date.now(); if (now - lastTyping.current > 1000) { lastTyping.current = now; if (chanRef.current) chanRef.current.send({ type: "broadcast", event: "typing", payload: { from: session.user.id } }); } }} placeholder={editingId ? "Editing..." : "Type a message"} onKeyDown={(e) => { if (e.key === "Enter") send(); }} />
           <Button onClick={send} className="size-11 shrink-0 rounded-full bg-[#25D366] p-0 hover:bg-[#1ebe5b]"><Send className="size-5" /></Button>
         </div>
       </div>

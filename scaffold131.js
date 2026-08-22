@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import fs from 'fs';
+fs.writeFileSync('src/routes/_authenticated/admin.tsx', `import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Ban, Bike, CheckCircle2, Megaphone, MessageCircle, Package, ReceiptText, RotateCcw, Star, Store, Trash2, Users, Wallet } from "lucide-react";
 import { useState } from "react";
@@ -388,3 +389,5 @@ function AdminPage() {
     </div>
   );
 }
+`);
+console.log('DONE: full admin command center rewritten');

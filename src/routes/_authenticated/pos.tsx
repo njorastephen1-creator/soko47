@@ -28,7 +28,7 @@ function PosPage() {
   const [rcFilter, setRcFilter] = useState("all");
   const [rcPage, setRcPage] = useState(0);
   const [ordPage, setOrdPage] = useState(0);
-  const { data: myVendor } = useQuery({
+  const { data: myVendor, isLoading: mvLoading } = useQuery({
     queryKey: ["my-vendor-pos", session ? session.user.id : "anon"],
     enabled: !!session,
     queryFn: async () => {
@@ -80,7 +80,7 @@ function PosPage() {
     qc.invalidateQueries();
     toast.success("Receipt deleted");
   };
-  if (!myVendor) { if (typeof window !== "undefined") setTimeout(() => navigate({ to: "/" }), 50); return <p className="py-16 text-center text-muted-foreground">Redirecting...</p>; }
+  if (!mvLoading && !myVendor) { if (typeof window !== "undefined") setTimeout(() => navigate({ to: "/" }), 50); return <p className="py-16 text-center text-muted-foreground">Redirecting...</p>; }
   const shopUrl = typeof window !== "undefined" ? window.location.origin + "/shop/" + myVendor.slug : "";
   const total = lines.reduce((s, l) => s + l.price * l.qty, 0);
   const addLine = (t: string, p: number) => setLines((prev) => {

@@ -36,7 +36,7 @@ function ProStudio() {
       return data || [];
     },
   });
-  if (!vendor) { if (typeof window !== "undefined") setTimeout(() => navigate({ to: "/" }), 50); return <p className="py-16 text-center text-muted-foreground">Redirecting...</p>; }
+  if (!vendor) return <p className="py-16 text-center text-muted-foreground">Pro Studio is for traders - open a shop first.</p>;
   if (vendor.subscription_plan !== "pro") return (
     <div className="mx-auto max-w-md px-4 py-16 text-center">
       <Sparkles className="mx-auto size-12 text-accent" />

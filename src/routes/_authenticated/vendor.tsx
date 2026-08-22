@@ -21,7 +21,7 @@ function VendorDashboard() {
   const { session } = useSession();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const { vendor, vendors } = useMyVendor();
+  const { vendor, vendors, loading } = useMyVendor();
   const { data: products } = useQuery({
     queryKey: ["vendor-products", vendor ? vendor.id : "none"],
     enabled: !!vendor,
@@ -132,11 +132,10 @@ function VendorDashboard() {
     qc.invalidateQueries();
     toast.success("Order deleted");
   };
-  if (!vendor) {
+  if (!loading && !vendor) {
     if (typeof window !== "undefined") setTimeout(() => navigate({ to: "/" }), 50);
     return <p className="py-16 text-center text-muted-foreground">Redirecting...</p>;
   }
-  return null;
   if (!vendor) return (
     <div className="mx-auto max-w-md px-4 py-16 text-center">
       <Store className="mx-auto size-12 text-accent" />

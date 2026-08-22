@@ -9,6 +9,8 @@ import { formatKes } from "@/lib/cart";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { LiveMap } from "@/components/live-map";
+import { haversineKm, feeForKm, etaMin } from "@/lib/geo";
 import { ImageUpload } from "@/components/image-upload";
 import { stkPush, stkStatus } from "@/lib/mpesa";
 export const Route = createFileRoute("/_authenticated/rider")({ component: RiderPage });
@@ -16,6 +18,8 @@ function RiderPage() {
   const { session } = useSession();
   const qc = useQueryClient();
   const [form, setForm] = useState({ name: "", phone: "", area: "", idNumber: "", vehicleType: "Boda boda", vehicleReg: "", emName: "", emPhone: "", idImage: "", vehregImage: "", selfie: "" });
+  const [myPos, setMyPos] = useState<any>(null);
+  const [watchId, setWatchId] = useState<any>(null);
   const [payPhone, setPayPhone] = useState("");
   const [paying, setPaying] = useState(false);
   const [payMsg, setPayMsg] = useState("");
@@ -32,7 +36,7 @@ function RiderPage() {
     queryKey: ["rider-open"],
     enabled: !!rider,
     queryFn: async () => {
-      const { data } = await supabase.from("orders").select("*, vendors(shop_name, pay_phone)").eq("delivery_status", "requested").order("created_at", { ascending: false });
+      const { data } = await supabase.from("orders").select("*, vendors(shop_name, pay_phone, lat, lng)").eq("delivery_status", "requested").order("created_at", { ascending: false });
       return data || [];
     },
   });
@@ -40,7 +44,7 @@ function RiderPage() {
     queryKey: ["rider-mine", rider ? rider.id : "none"],
     enabled: !!rider,
     queryFn: async () => {
-      const { data } = await supabase.from("orders").select("*, vendors(shop_name, pay_phone)").eq("rider_id", rider!.id).order("created_at", { ascending: false });
+      const { data } = await supabase.from("orders").select("*, vendors(shop_name, pay_phone, lat, lng)").eq("rider_id", rider!.id).order("created_at", { ascending: false });
       return data || [];
     },
   });
@@ -73,6 +77,22 @@ function RiderPage() {
       </div>
     </div>
   );
+  const toggleShare = () => {
+    if (watchId != null) {
+      navigator.geolocation.clearWatch(watchId);
+      setWatchId(null);
+      supabase.from("riders").update({ lat: null, lng: null }).eq("id", rider.id).then(() => qc.invalidateQueries());
+      toast.success("Location sharing off");
+      return;
+    }
+    if (!navigator.geolocation) return toast.error("Geolocation not supported");
+    const id = navigator.geolocation.watchPosition((pos) => {
+      setMyPos({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      supabase.from("riders").update({ lat: pos.coords.latitude, lng: pos.coords.longitude, last_loc_at: new Date().toISOString() }).eq("id", rider.id);
+    }, () => toast.error("Allow location access to go live"), { enableHighAccuracy: true, maximumAge: 5000 });
+    setWatchId(id);
+    toast.success("You are live on the map");
+  };
   const subActive = !!(rider.subscription_expires_at && new Date(rider.subscription_expires_at).getTime() > Date.now());
   const payRiderSub = async () => {
     if (!payPhone.trim()) return toast.error("Enter your M-Pesa number");
@@ -132,6 +152,7 @@ function RiderPage() {
           <p className="mt-1 text-sm text-muted-foreground">{rider.name} · {rider.area}</p>
         </div>
         {online ? <Button variant="outline" onClick={() => setStatus("offline")}>Go offline</Button> : <Button onClick={() => setStatus("available")}>Go online</Button>}
+        {watchId != null ? <Button variant="outline" onClick={toggleShare}>Stop sharing location</Button> : <Button variant="outline" onClick={toggleShare}>Share live location</Button>}
       </div>
       <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div className="rounded-2xl bg-secondary p-3"><Wallet className="size-4 text-accent-deep" /><p className="mt-1 font-display text-xl font-extrabold">{formatKes(earnings)}</p><p className="text-xs text-muted-foreground">Earned (KSh 135/drop)</p></div>
@@ -163,6 +184,7 @@ function RiderPage() {
               <span className="rounded-full bg-accent/15 px-2 py-0.5 text-xs font-bold text-accent-deep">{formatKes(135)} for you</span>
             </div>
             <p className="mt-1 text-xs text-muted-foreground">Drop at: {o.delivery_location}</p>
+            {myPos && o.vendors && o.vendors.lat != null ? (() => { const km = haversineKm(myPos.lat, myPos.lng, Number(o.vendors.lat), Number(o.vendors.lng)); return <p className="mt-1 text-xs font-semibold text-accent-deep">{km.toFixed(1)} km away · ~{etaMin(km)} min · fare {formatKes(feeForKm(km))}</p>; })() : null}
             <div className="mt-2 flex gap-2">
               <Button size="sm" disabled={!online || !subActive} onClick={() => accept(o)}>Accept delivery</Button>
               <Button size="sm" variant="outline" asChild={false} onClick={() => { window.location.href = "tel:" + o.buyer_phone; }}><Phone className="size-4" /> Call</Button>
@@ -170,6 +192,8 @@ function RiderPage() {
           </div>
         ))}
       </div>
+      <h2 className="mt-6 font-semibold">Live map</h2>
+      <div className="mt-2"><LiveMap points={[...(myPos ? [{ lat: myPos.lat, lng: myPos.lng, color: "#25D366", label: "You" }] : []), ...(open || []).filter((o: any) => o.vendors && o.vendors.lat != null).map((o: any) => ({ lat: Number(o.vendors.lat), lng: Number(o.vendors.lng), color: "#0f766e", label: "Pickup: " + (o.vendors.shop_name || "") }))]} /></div>
       <h2 className="mt-6 font-semibold">Active deliveries</h2>
       <div className="mt-2 space-y-2">
         {active.length === 0 && <p className="text-sm text-muted-foreground">Nothing in motion - accept an open delivery.</p>}

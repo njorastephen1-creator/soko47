@@ -69,6 +69,14 @@ function VendorDashboard() {
     qc.invalidateQueries();
     toast.success("New shop opened - pick its plan!");
   };
+  const setStallLocation = () => {
+    if (!navigator.geolocation) return toast.error("Geolocation not supported");
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      await supabase.from("vendors").update({ lat: pos.coords.latitude, lng: pos.coords.longitude }).eq("id", vendor.id);
+      qc.invalidateQueries();
+      toast.success("Stall location pinned - riders now see accurate distance & fee");
+    }, () => toast.error("Allow location access"));
+  };
   const [rails, setRails] = useState<any>(null);
   const rr = rails || (vendor ? { phone: vendor.pay_phone || "", till: vendor.till_number || "", pub: vendor.intasend_publishable || "", s47: !!vendor.soko47_pay } : null);
   const saveRails = async () => {
@@ -192,6 +200,12 @@ function VendorDashboard() {
           <div className="rounded-2xl bg-secondary p-3"><Users className="size-4 text-accent-deep" /><p className="mt-1 font-display text-xl font-extrabold">{vendor.followers_count ?? 0}</p><p className="text-xs text-muted-foreground">Followers</p></div>
           <div className="rounded-2xl bg-secondary p-3"><BadgeCheck className="size-4 text-accent-deep" /><p className="mt-1 font-display text-xl font-extrabold capitalize">{(vendor.subscription_plan || "trial").replace("-", " ")}</p><p className="text-xs text-muted-foreground">Plan · {vendor.status}</p></div>
         </div>
+      </div>
+      <div className="mt-6 rounded-3xl border border-border bg-card p-6">
+        <h2 className="font-display text-xl font-bold">Delivery pickup point</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Pin your stall's GPS so buyers and riders see accurate distance, fare and ETA.</p>
+        <Button className="mt-3" onClick={setStallLocation}>{vendor.lat != null ? "Update my stall location" : "Set my stall location"}</Button>
+        {vendor.lat != null ? <p className="mt-2 text-xs font-semibold text-success">Stall pinned at {Number(vendor.lat).toFixed(4)}, {Number(vendor.lng).toFixed(4)}</p> : null}
       </div>
       <div className="mt-6 rounded-3xl border border-accent/40 bg-accent/10 p-6">
         <h2 className="font-display text-xl font-bold">Subscription - M-Pesa</h2>

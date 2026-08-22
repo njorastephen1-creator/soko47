@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { formatKes } from "@/lib/cart";
+import { LiveMap } from "@/components/live-map";
 export const Route = createFileRoute("/_authenticated/admin")({ component: AdminPage });
 const PAGE = 15;
 function Pager(props: any) {
@@ -52,6 +53,7 @@ function AdminPage() {
   const { data: riders } = useQuery({ queryKey: ["adm-riders"], enabled: !!isAdm, queryFn: async () => { const { data } = await supabase.from("riders").select("*").order("created_at", { ascending: false }); return data || []; } });
   const { data: users } = useQuery({ queryKey: ["adm-users"], enabled: !!isAdm, queryFn: async () => { const { data } = await supabase.rpc("user_directory"); return data || []; } });
   const { data: msgs } = useQuery({ queryKey: ["adm-msgs"], enabled: !!isAdm, queryFn: async () => { const { data } = await supabase.from("messages").select("*").order("created_at", { ascending: false }); return data || []; } });
+  const { data: activeDel } = useQuery({ queryKey: ["adm-active"], enabled: !!isAdm, refetchInterval: 8000, queryFn: async () => { const { data } = await supabase.from("orders").select("*, vendors(shop_name, lat, lng)").in("delivery_status", ["requested", "accepted"]).order("created_at", { ascending: false }); return data || []; } });
   const { data: trash } = useQuery({ queryKey: ["adm-trash"], enabled: !!isAdm, queryFn: async () => { const { data } = await supabase.from("trash").select("*").order("deleted_at", { ascending: false }); return data || []; } });
   if (!isAdm) return <p className="py-16 text-center text-muted-foreground">Admins only.</p>;
   const setVendor = async (id: string, patch: any, msg: string) => { await supabase.from("vendors").update(patch).eq("id", id); qc.invalidateQueries(); toast.success(msg); };
@@ -124,7 +126,7 @@ function AdminPage() {
   });
   const threads = Object.values(threadsMap).sort((a: any, b: any) => new Date(b.lastAt).getTime() - new Date(a.lastAt).getTime());
   const threadMsgs = thread ? (msgs || []).filter((m: any) => m.vendor_id === thread.vendor_id && m.buyer_id === thread.buyer_id) : [];
-  const tabs = ["overview", "vendors", "listings", "orders", "receipts", "users", "riders", "chats", "trash", "broadcast"];
+  const tabs = ["overview", "vendors", "listings", "orders", "receipts", "users", "riders", "map", "chats", "trash", "broadcast"];
   const card = "rounded-2xl border border-border bg-card p-5";
   const th = "border-b border-border bg-secondary text-left";
   const td = "p-3";
@@ -377,6 +379,12 @@ function AdminPage() {
             </table>
           </div>
           {(trash || []).length === 0 && <p className="text-sm text-muted-foreground">Trash is empty.</p>}
+        </div>
+      )}
+      {tab === "map" && (
+        <div className="mt-6 space-y-3">
+          <p className="text-sm text-muted-foreground">Live oversight - every online rider (green) and every open/active delivery pickup (teal), refreshed every 8 seconds.</p>
+          <LiveMap height="480px" points={[...(riders || []).filter((r: any) => r.lat != null).map((r: any) => ({ lat: Number(r.lat), lng: Number(r.lng), color: "#25D366", label: "Rider: " + r.name })), ...(activeDel || []).filter((o: any) => o.vendors && o.vendors.lat != null).map((o: any) => ({ lat: Number(o.vendors.lat), lng: Number(o.vendors.lng), color: "#0f766e", label: (o.delivery_status === "accepted" ? "ACTIVE: " : "OPEN: ") + o.buyer_name }))]} />
         </div>
       )}
       {tab === "broadcast" && (

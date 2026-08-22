@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import fs from 'fs';
+fs.writeFileSync('src/routes/_authenticated/rider.tsx', `import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bike, CheckCircle2, Package, Phone, Wallet } from "lucide-react";
 import { useState } from "react";
@@ -149,3 +150,5 @@ function RiderPage() {
     </div>
   );
 }
+`);
+console.log('DONE: professional rider dashboard');

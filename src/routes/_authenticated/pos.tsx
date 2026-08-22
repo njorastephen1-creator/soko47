@@ -59,6 +59,26 @@ function PosPage() {
       return data || [];
     },
   });
+
+  const isAdmin = session && session.user.email === "njorastephen1@gmail.com";
+  const canDeleteOrder = (g: any) => isAdmin || ((Date.now() - new Date(g.created_at).getTime()) >= 20 * 864e5);
+  const canDeleteReceipt = (r: any) => isAdmin || ((Date.now() - new Date(r.created_at).getTime()) >= 20 * 864e5);
+  const daysLeftOrder = (g: any) => Math.ceil(20 - (Date.now() - new Date(g.created_at).getTime()) / 864e5);
+  const daysLeftReceipt = (r: any) => Math.ceil(20 - (Date.now() - new Date(r.created_at).getTime()) / 864e5);
+  const deleteOrder = async (id: string) => {
+    if (!window.confirm("Delete this order permanently? (Admin or 20+ days only)")) return;
+    const { error } = await supabase.from("orders").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    qc.invalidateQueries();
+    toast.success("Order deleted");
+  };
+  const deleteReceipt = async (id: string) => {
+    if (!window.confirm("Delete this receipt permanently? (Admin or 20+ days only)")) return;
+    const { error } = await supabase.from("receipts").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    qc.invalidateQueries();
+    toast.success("Receipt deleted");
+  };
   if (!myVendor) return <p className="py-16 text-center text-muted-foreground">Open a trader shop first to use the POS.</p>;
   const shopUrl = typeof window !== "undefined" ? window.location.origin + "/shop/" + myVendor.slug : "";
   const total = lines.reduce((s, l) => s + l.price * l.qty, 0);
@@ -164,6 +184,7 @@ function PosPage() {
                   <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
                     <p className="font-semibold">{formatKes(g.total)}</p>
                     <div className="flex gap-2">
+                      {canDeleteOrder(g) ? <Button size="sm" variant="outline" className="text-destructive" onClick={() => deleteOrder(g.id)}><Trash2 className="size-4" /></Button> : <span className="text-[11px] text-muted-foreground">Delete in {daysLeftOrder(g)}d</span>}
                       {g.payment_status !== "paid" && <Button size="sm" variant="outline" onClick={() => markStatus(g.id, { payment_status: "paid" })}>Mark paid</Button>}
                       {g.status !== "fulfilled" && <Button size="sm" onClick={() => markStatus(g.id, { status: "fulfilled" })}>Fulfill</Button>}
                     </div>
@@ -191,6 +212,7 @@ function PosPage() {
                     <th className="py-2 pr-2">Date</th>
                     <th className="py-2 pr-2">Method</th>
                     <th className="py-2 pr-2 text-right">Total</th>
+                    <th className="py-2 pr-2" />
                     <th className="py-2" />
                   </tr>
                 </thead>
@@ -203,6 +225,7 @@ function PosPage() {
                       <td className="py-2 pr-2 text-xs">{r.payment_method}</td>
                       <td className="py-2 pr-2 text-right font-semibold">{formatKes(Number(r.total_kes))}</td>
                       <td className="py-2 text-right text-xs font-semibold text-accent-deep">View</td>
+                      <td className="py-2 text-right">{canDeleteReceipt(r) ? <button onClick={(e) => { e.stopPropagation(); deleteReceipt(r.id); }} className="text-destructive"><Trash2 className="size-3.5" /></button> : <span className="text-[10px] text-muted-foreground">{daysLeftReceipt(r)}d</span>}</td>
                     </tr>
                   ))}
                 </tbody>

@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { BadgeCheck, Package, Plus, Store, Users } from "lucide-react";
+import {BadgeCheck, Package, Plus, Store, Users, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -239,6 +239,7 @@ function VendorDashboard() {
                 <p className="font-semibold">{formatKes(g.total)}</p>
                 {g.status === "pending" ? (
                   <div className="flex flex-wrap gap-2">
+                    {canDeleteOrder(g) ? <Button size="sm" variant="outline" className="text-destructive" onClick={() => deleteOrder(g.id)}><Trash2 className="size-4" /></Button> : <span className="text-[11px] text-muted-foreground">Delete in {daysLeftOrder(g)}d</span>}
                     <Button asChild size="sm" variant="outline"><Link to="/chat/$vendorId/$buyerId" params={{ vendorId: vendor.id, buyerId: g.buyer_id }}>Chat</Link></Button>
                     {g.payment_status !== "paid" && <Button size="sm" variant="outline" onClick={() => markStatus(g.id, { payment_status: "paid" })}>Mark paid</Button>}
                     <Button size="sm" onClick={() => markStatus(g.id, { status: "fulfilled" })}>Fulfill</Button>

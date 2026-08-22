@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Bot, Lock, User } from "lucide-react";
+import { User } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -47,7 +47,7 @@ function Profile() {
     <div className="mx-auto max-w-lg px-4 pb-28 pt-8 md:pb-8">
       <h1 className="flex items-center gap-2 font-display text-3xl font-bold"><User className="size-7 text-accent" /> My profile</h1>
       <p className="mt-1 text-sm text-muted-foreground">Your name and photo as customers see them in chat.</p>
-      <p className="mt-1 text-xs font-semibold text-success"><span className="inline-flex items-center gap-1"><Lock className="size-3.5" /> Private - only YOU can view & edit this page. Nobody else can touch your profile.</span></p>
+      <p className="mt-1 text-xs font-semibold text-success">Private - only YOU can view & edit this page. Nobody else can touch your profile.</p>
       <div className="mt-6 space-y-5 rounded-3xl border border-border bg-card p-6">
         <div className="flex flex-col items-center gap-3">
           {curPhoto ? <img src={curPhoto} alt="" className="size-28 rounded-full object-cover ring-4 ring-accent/20" /> : <span className="flex size-28 items-center justify-center rounded-full bg-accent/15 font-display text-4xl font-bold text-accent-deep">{(curName || "?").slice(0, 1).toUpperCase()}</span>}
@@ -60,7 +60,7 @@ function Profile() {
         </div>
         {vendor ? (
           <div>
-            <Label className="flex items-center gap-1"><Bot className="size-4" /> Auto-reply message</Label>
+            <Label>Auto-reply message</Label>
             <Textarea value={curReply} onChange={(e) => setReply(e.target.value)} rows={4} placeholder="e.g. Hey! Thanks for reaching out. I will reply within 10 minutes." maxLength={500} />
             <p className="mt-1 text-xs text-muted-foreground">Sent automatically when a new customer chats while you are away.</p>
           </div>

@@ -1,6 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Bike } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { clearCart, formatKes, useCart } from "@/lib/cart";
@@ -53,7 +52,7 @@ function Checkout() {
         {!loading && !session && (
           <p className="mt-4 rounded-md bg-secondary p-3 text-sm">You need an account to place an order. <Link to="/auth" className="font-medium text-accent-deep underline">Sign in or create one</Link>.</p>
         )}
-        <label className="mt-4 flex items-center gap-2 rounded-md bg-secondary p-3 text-sm font-medium"><input type="checkbox" checked={needRider} onChange={(e) => setNeedRider(e.target.checked)} /> <Bike className="size-4" /> I need a Soko47 rider (+KSh 150)</label>
+        <label className="mt-4 flex items-center gap-2 rounded-md bg-secondary p-3 text-sm font-medium"><input type="checkbox" checked={needRider} onChange={(e) => setNeedRider(e.target.checked)} /> I need a Soko47 rider (+KSh 150)</label>
         <Button type="submit" size="lg" className="mt-6 w-full" disabled={saving}>{saving ? "Placing order..." : "Place order · " + formatKes(total)}</Button>
         <p className="mt-3 text-xs text-muted-foreground">Payment is agreed directly with each trader (M-Pesa on delivery or at the stall).</p>
       </form>

@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Copy, Download, Lock, MessageCircle, Pencil, Send, Trash2, X } from "lucide-react";
+import { Copy, Download, Pencil, Send, Trash2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -144,7 +144,7 @@ function ChatThread() {
             <button onClick={() => setSelectedId(null)} className="rounded-full p-2 hover:bg-white/10"><X className="size-5" /></button>
           </div>
         ) : (
-          <MessageCircle className="size-4 opacity-70" />
+          <div className="w-6" />
         )}
       </div>
       {showProfile ? (
@@ -155,7 +155,7 @@ function ChatThread() {
             {vendor && !iAmVendor ? <p className="text-xs text-muted-foreground">{vendor.market_name || "Soko47 trader"} · ⭐ {Number(vendor.rating_count) > 0 ? (Number(vendor.rating_sum) / Number(vendor.rating_count)).toFixed(1) : "New"}</p> : null}
             {vendor && iAmVendor ? <p className="text-xs text-muted-foreground">Your customer</p> : null}
             {vendor && !iAmVendor ? <a href={"/shop/" + vendor.slug} className="mt-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">Visit shop</a> : null}
-            <Link to="/profile" className="mt-2 rounded-xl border border-border px-4 py-2 text-sm font-semibold"><Pencil className="size-3.5" /> Edit my profile (only you can edit it)</Link>
+            <Link to="/profile" className="mt-2 rounded-xl border border-border px-4 py-2 text-sm font-semibold">Edit my profile (only you can edit it)</Link>
           </div>
           <p className="mt-4 text-xs font-bold uppercase tracking-wide text-muted-foreground">Media in this chat</p>
           <div className="mt-2 grid grid-cols-3 gap-2">
@@ -164,7 +164,7 @@ function ChatThread() {
             ))}
             {(msgs || []).filter((m: any) => m.attachment_url).length === 0 && <p className="col-span-3 text-xs text-muted-foreground">No media shared yet.</p>}
           </div>
-          <button onClick={clearChat} className="mt-4 w-full rounded-xl border border-destructive/40 py-2 text-sm font-semibold text-destructive"><Trash2 className="size-4" /> Clear chat</button>
+          <button onClick={clearChat} className="mt-4 w-full rounded-xl border border-destructive/40 py-2 text-sm font-semibold text-destructive">Clear chat</button>
         </div>
       ) : null}
       <div className="flex-1 space-y-2 overflow-y-auto p-4" style={{ backgroundColor: "#efeae2", backgroundImage: "radial-gradient(#d8d2c6 1px, transparent 1px)", backgroundSize: "18px 18px" }}>
@@ -187,7 +187,7 @@ function ChatThread() {
             </div>
           );
         })}
-        {(msgs || []).length === 0 && <p className="flex items-center justify-center gap-1 pt-10 text-center text-sm text-muted-foreground"><Lock className="size-3.5" /> Messages are private - say habari to start.</p>}
+        {(msgs || []).length === 0 && <p className="pt-10 text-center text-sm text-muted-foreground">Messages are private - say habari to start.</p>}
         <div ref={endRef} />
       </div>
       <div className="rounded-b-2xl bg-[#f0f2f5] p-2" onClick={(e) => e.stopPropagation()}>

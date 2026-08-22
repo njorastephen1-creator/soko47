@@ -18,13 +18,15 @@ function ShopPage() {
   });
   const { data: products } = useQuery({
     queryKey: ["shop-products", shop ? shop.id : ""],
-    enabled: !!shop && shop.status === "active",
+    enabled: !!shop && subscriptionActive,
     queryFn: async () => {
       const { data } = await supabase.from("products").select("*, vendors(shop_name, slug, county_slug, market_name, rating_sum, rating_count)").eq("vendor_id", shop!.id).order("created_at", { ascending: false });
       return data as ProductRow[];
     },
   });
   if (!shop) return <p className="py-16 text-center text-muted-foreground">Loading shop...</p>;
+  const subscriptionActive = shop.status === "active" && (!shop.subscription_expires_at || new Date(shop.subscription_expires_at).getTime() > Date.now());
+  const subscriptionExpired = shop.subscription_expires_at && new Date(shop.subscription_expires_at).getTime() <= Date.now();
   const county = getCounty(shop.county_slug);
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
@@ -47,11 +49,26 @@ function ShopPage() {
           <p className="font-display text-xl font-bold text-destructive">This shop is temporarily suspended</p>
           <p className="mt-2 text-sm text-muted-foreground">The trader is settling their subscription. Please check back soon.</p>
         </div>
+      ) : subscriptionExpired ? (
+        <div className="mt-8 rounded-2xl border-2 border-warning bg-warning/10 p-8 text-center">
+          <p className="font-display text-xl font-bold text-warning">This shop is temporarily closed</p>
+          <p className="mt-2 text-sm text-muted-foreground">The trader needs to renew their subscription. The shop will reopen as soon as they do.</p>
+        </div>
+      ) : (!subscriptionActive ? (
+        <div className="mt-8 rounded-2xl border-2 border-destructive bg-destructive/10 p-8 text-center">
+          <p className="font-display text-xl font-bold text-destructive">This shop is closed</p>
+          <p className="mt-2 text-sm text-muted-foreground">This shop is not currently active.</p>
+        </div>
+      ) : (
+        <div className="mt-8 rounded-2xl border-2 border-destructive bg-destructive/10 p-8 text-center">
+          <p className="font-display text-xl font-bold text-destructive">This shop is temporarily suspended</p>
+          <p className="mt-2 text-sm text-muted-foreground">The trader is settling their subscription. Please check back soon.</p>
+        </div>
       ) : (
         <div className="mt-8 grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-5">
           {(products || []).map((p) => (<ProductCard key={p.id} product={p} />))}
         </div>
-      )}
+      ))}
       <ReviewsSection vendor={shop} />
     </div>
   );

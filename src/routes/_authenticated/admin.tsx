@@ -40,6 +40,10 @@ function AdminPage() {
   const email = session ? session.user.email : undefined;
   const isAdm = useIsAdmin(email);
   const isOwner = isAdminEmail(email || "");
+  const { data: adminRows, refetch: refetchAdmins } = useQuery({ queryKey: ["admins-list-q"], enabled: isOwner, queryFn: async () => { const { data } = await supabase.from("admins").select("email, added_by, created_at").order("created_at", { ascending: false }); return data || []; } });
+  const [newAdmin, setNewAdmin] = useState("");
+  const addAdmin = async () => { const e = newAdmin.trim().toLowerCase(); if (!e || !e.includes("@")) return toast.error("Enter a valid email"); const { error } = await supabase.from("admins").insert({ email: e, added_by: email }); if (error) return toast.error(error.message); setNewAdmin(""); refetchAdmins(); toast.success(e + " is now an admin"); };
+  const removeAdmin = async (e: string) => { if (!window.confirm("Remove " + e + " as admin?")) return; const { error } = await supabase.from("admins").delete().eq("email", e); if (error) return toast.error(error.message); refetchAdmins(); toast.success("Removed"); };
   const [tab, setTab] = useState("overview");
   const settings = useSettings();
   const [setForm, setSetForm] = useState<any>(null);

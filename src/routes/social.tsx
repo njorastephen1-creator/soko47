@@ -138,6 +138,7 @@ function SocialPage() {
               <button onClick={() => share(p)} className="flex items-center gap-1 text-muted-foreground"><Share2 className="size-6" /></button>
               {session && p.user_id !== session.user.id ? (<button onClick={() => toggleFollow(p.user_id)} className="flex items-center gap-1 text-xs font-semibold text-accent-deep">{followSet[p.user_id] ? <UserCheck className="size-4" /> : <UserPlus className="size-4" />} {followSet[p.user_id] ? "Following" : "Follow"}</button>) : null}
               {session && p.user_id !== session.user.id ? (<button onClick={() => report(p)} className="text-muted-foreground"><Flag className="size-4" /></button>) : null}
+              {session && (p.user_id === session.user.id || isAdm) ? (<button onClick={() => startEdit(p)} className="flex items-center gap-1 rounded-full bg-accent/15 px-2 py-1 text-xs font-bold text-accent-deep"><Pencil className="size-4" /> Edit</button>) : null}
               {session && (p.user_id === session.user.id || isAdm) ? (<button onClick={() => delPost(p)} className="text-destructive"><Trash2 className="size-4" /></button>) : null}
               {session && p.user_id === session.user.id && !boosted(p) ? (<button onClick={() => boost(p)} className="flex items-center gap-1 rounded-full bg-accent/15 px-2 py-0.5 text-[11px] font-bold text-accent-deep"><Zap className="size-3" /> Boost KSh {Number(settings.boost_price)}</button>) : null}
             </div>

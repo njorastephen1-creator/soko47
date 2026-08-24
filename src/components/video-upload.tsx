@@ -6,7 +6,7 @@ export function VideoUpload({ value, onChange }: { value: string; onChange: (u: 
   const [busy, setBusy] = useState(false);
   const ref = useRef<HTMLInputElement | null>(null);
   const pick = async (file: File) => {
-    if (file.size > 50 * 1024 * 1024) return toast.error("Video too large - keep it under 50MB");
+    if (file.size > 500 * 1024 * 1024) return toast.error("Video too large - keep it under 500MB");
     setBusy(true);
     const path = "vid-" + Date.now() + "-" + file.name.replace(/[^a-zA-Z0-9.]+/g, "-");
     const { error } = await supabase.storage.from("videos").upload(path, file, { contentType: file.type });

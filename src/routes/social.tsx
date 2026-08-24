@@ -35,6 +35,7 @@ function SocialPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingPost, setEditingPost] = useState<any>(null);
   const [editForm, setEditForm] = useState<any>(null);
+  const [expanded, setExpanded] = useState<any>({});
   const { data: myProf } = useQuery({ queryKey: ["social-prof", session ? session.user.id : "anon"], enabled: !!session, queryFn: async () => { const { data } = await supabase.from("user_profiles").select("display_name, social_expires_at").eq("user_id", session!.user.id).maybeSingle(); return data || null; } });
   const { data: posts } = useQuery({ queryKey: ["social-posts"], queryFn: async () => { const { data } = await supabase.from("posts").select("*").order("created_at", { ascending: false }).limit(100); return data || []; } });
   const { data: allLikes } = useQuery({ queryKey: ["social-likes"], queryFn: async () => { const { data } = await supabase.from("post_likes").select("post_id, user_id"); return data || []; } });
@@ -120,10 +121,10 @@ function SocialPage() {
             {boosted(p) ? <p className="mt-1 flex items-center gap-1 text-[11px] font-bold text-accent-deep"><Zap className="size-3" /> Boosted</p> : null}
             {p.expires_at ? <p className="mt-1 text-[11px] font-bold text-warning">Story - expires in {Math.max(0, Math.round((new Date(p.expires_at).getTime() - Date.now()) / 3600000))}h</p> : null}
             {p.title ? <h3 className="mt-2 font-display text-lg font-bold">{p.title}</h3> : null}
-            {p.body ? <p className="mt-1 text-sm text-muted-foreground">{p.body}</p> : null}
+            {p.body ? (<div className="mt-1 text-sm text-muted-foreground"><p className={expanded[p.id] ? "" : "line-clamp-2"}>{p.body}</p>{String(p.body).length > 90 ? (<button className="mt-0.5 text-xs font-semibold text-accent-deep" onClick={() => setExpanded({ ...expanded, [p.id]: !expanded[p.id] })}>{expanded[p.id] ? "See less" : "See more"}</button>) : null}</div>) : null}
             {tagsOf(p).length > 0 ? <div className="mt-1 flex flex-wrap gap-1">{tagsOf(p).map((t) => (<button key={t} onClick={() => setActiveTag(t)} className="text-[11px] font-semibold text-accent-deep">#{t}</button>))}</div> : null}
-            {p.kind !== "video" && p.media_url ? <img src={p.media_url} alt={p.title || "ad"} className="mt-3 max-h-96 w-full rounded-xl object-cover" /> : null}
-            {p.kind === "video" && p.media_url ? (<div className="mt-3 w-full overflow-hidden rounded-xl bg-black"><video src={p.media_url} controls autoPlay muted loop playsInline className="mx-auto max-h-[90vh] w-full object-contain" /></div>) : null}
+            {p.kind !== "video" && p.media_url ? <img src={p.media_url} alt={p.title || "ad"} className="mt-3 w-full rounded-xl" style={{ height: "auto" }} /> : null}
+            {p.kind === "video" && p.media_url ? (<div className="mt-3 w-full overflow-hidden rounded-xl bg-black"><video src={p.media_url} controls autoPlay muted loop playsInline className="w-full" style={{ height: "auto" }} /></div>) : null}
             {p.author_shop_slug ? <Link to={"/shop/" + p.author_shop_slug} className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-accent-deep"><Store className="size-3.5" /> Visit shop</Link> : null}
             <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
               <button onClick={() => toggleLike(p.id)} className={"flex items-center gap-1 " + (myLikes[p.id] ? "text-red-500" : "text-muted-foreground")}><Heart className={"size-4 " + (myLikes[p.id] ? "fill-red-500" : "")} /> {likesCount[p.id] || 0}</button>

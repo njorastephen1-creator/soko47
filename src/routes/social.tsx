@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { BadgeCheck, Bookmark, Pencil, Eye, Flag, Heart, MessageCircle, Share2, Store, Trash2, UserCheck, UserPlus, X, Zap } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/use-session";
@@ -36,6 +36,17 @@ function SocialPage() {
   const [editingPost, setEditingPost] = useState<any>(null);
   const [editForm, setEditForm] = useState<any>(null);
   const [expanded, setExpanded] = useState<any>({});
+  useEffect(() => {
+    const pauseAll = () => { document.querySelectorAll("video").forEach((v) => v.pause()); };
+    const onVis = () => { if (document.hidden) pauseAll(); };
+    document.addEventListener("visibilitychange", onVis);
+    window.addEventListener("blur", pauseAll);
+    return () => { document.removeEventListener("visibilitychange", onVis); window.removeEventListener("blur", pauseAll); };
+  }, []);
+  useEffect(() => {
+    document.body.style.overflow = openComments ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [openComments]);
   const { data: myProf } = useQuery({ queryKey: ["social-prof", session ? session.user.id : "anon"], enabled: !!session, queryFn: async () => { const { data } = await supabase.from("user_profiles").select("display_name, social_expires_at").eq("user_id", session!.user.id).maybeSingle(); return data || null; } });
   const { data: posts } = useQuery({ queryKey: ["social-posts"], refetchInterval: 20000, queryFn: async () => { const { data } = await supabase.from("posts").select("*").order("created_at", { ascending: false }).limit(100); return data || []; } });
   const { data: allLikes } = useQuery({ queryKey: ["social-likes"], refetchInterval: 20000, queryFn: async () => { const { data } = await supabase.from("post_likes").select("post_id, user_id"); return data || []; } });
@@ -127,8 +138,8 @@ function SocialPage() {
             {p.title ? <h3 className="mt-2 font-display text-lg font-bold">{p.title}</h3> : null}
             {p.body ? (<div className="mt-1 text-sm text-muted-foreground"><p className={expanded[p.id] ? "" : "line-clamp-2"}>{p.body}</p>{String(p.body).length > 90 ? (<button className="mt-0.5 text-xs font-semibold text-accent-deep" onClick={() => setExpanded({ ...expanded, [p.id]: !expanded[p.id] })}>{expanded[p.id] ? "See less" : "See more"}</button>) : null}</div>) : null}
             {tagsOf(p).length > 0 ? <div className="mt-1 flex flex-wrap gap-1">{tagsOf(p).map((t) => (<button key={t} onClick={() => setActiveTag(t)} className="text-[11px] font-semibold text-accent-deep">#{t}</button>))}</div> : null}
-            {p.kind !== "video" && p.media_url ? <img src={p.media_url} alt={p.title || "ad"} className="mt-3 w-full rounded-xl" style={{ height: "auto" }} /> : null}
-            {p.kind === "video" && p.media_url ? (<div className="mt-3 w-full overflow-hidden rounded-xl bg-black"><video src={p.media_url} controls autoPlay muted loop playsInline className="w-full" style={{ height: "auto" }} /></div>) : null}
+            {p.kind !== "video" && p.media_url ? (<div className="mt-3 flex w-full items-center justify-center overflow-hidden rounded-xl bg-black" style={{ maxHeight: "70vh" }}><img src={p.media_url} alt={p.title || "ad"} className="w-full object-contain" style={{ maxHeight: "70vh" }} /></div>) : null}
+            {p.kind === "video" && p.media_url ? (<div className="mt-3 flex w-full items-center justify-center overflow-hidden rounded-xl bg-black" style={{ maxHeight: "65vh" }}><video src={p.media_url} controls autoPlay muted loop playsInline className="w-full object-contain" style={{ maxHeight: "65vh" }} /></div>) : null}
             {p.author_shop_slug ? <Link to={"/shop/" + p.author_shop_slug} className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-accent-deep"><Store className="size-3.5" /> Visit shop</Link> : null}
             <div className="mt-3 flex flex-wrap items-center gap-4 text-base">
               <button onClick={() => toggleLike(p.id)} className={"flex items-center gap-1 " + (myLikes[p.id] ? "text-red-500" : "text-muted-foreground")}><Heart className={"size-6 " + (myLikes[p.id] ? "fill-red-500" : "")} /> {likesCount[p.id] || 0}</button>
@@ -174,7 +185,7 @@ function SocialPage() {
         </div>
       ) : null}
       {openComments ? (
-        <div className="fixed inset-0 z-50 bg-black/50" onClick={() => setOpenComments(null)}>
+        <div className="fixed inset-0 z-50 bg-black/80" onClick={() => setOpenComments(null)}>
           <div className="absolute inset-x-0 bottom-0 mx-auto max-h-[70vh] max-w-2xl overflow-y-auto rounded-t-3xl bg-card p-4" onClick={(e) => e.stopPropagation()}>
             <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-border" />
             <div className="flex items-center justify-between"><p className="text-center text-sm font-semibold">{(commentsByPost[openComments] || []).length} comments</p><button onClick={() => setOpenComments(null)} className="text-muted-foreground"><X className="size-5" /></button></div>

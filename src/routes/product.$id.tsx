@@ -41,6 +41,7 @@ function ProductPage() {
   });
   if (!product) return <p className="py-16 text-center text-muted-foreground">Loading product...</p>;
   const county = getCounty(product.vendors.county_slug);
+  const isVid = (u: string) => /\.mp4(\?|$)|\/videos\//.test(u || "");
   const gallery = ([product.image_url].concat((product.images as string[]) || [])).filter(Boolean) as string[];
   const specs = (product.specs as { label: string; value: string }[]) || [];
   const highlights = (product.highlights as string[]) || [];
@@ -63,14 +64,14 @@ function ProductPage() {
       <div className="mt-4 grid gap-8 lg:grid-cols-2">
         <div>
           <div className="relative overflow-hidden rounded-3xl border border-border bg-card">
-            {gallery[img] ? <img src={gallery[img]} alt={product.title} className="aspect-[4/3] w-full object-cover" /> : <div className="flex aspect-[4/3] items-center justify-center text-muted-foreground"><ShoppingBasket className="size-16" /></div>}
+            {gallery[img] ? {isVid(gallery[img]) ? <video src={gallery[img]} controls playsInline className="aspect-[4/3] w-full bg-black object-contain" /> : <img src={gallery[img]} alt={product.title} className="aspect-[4/3] w-full object-cover" />} : <div className="flex aspect-[4/3] items-center justify-center text-muted-foreground"><ShoppingBasket className="size-16" /></div>}
             <LikeButton productId={product.id} likes={Number(product.likes_count || 0)} className="absolute right-3 top-3" />
           </div>
           {gallery.length > 1 && (
             <div className="mt-3 flex gap-2 overflow-x-auto">
               {gallery.map((g, i) => (
                 <button key={i} onClick={() => setImg(i)} className={"size-16 shrink-0 overflow-hidden rounded-lg border-2 " + (i === img ? "border-accent" : "border-border")}>
-                  <img src={g} alt="" className="size-full object-cover" />
+                  {isVid(g) ? <video src={g} muted playsInline preload="metadata" className="size-full object-cover" /> : <img src={g} alt="" className="size-full object-cover" />}
                 </button>
               ))}
             </div>

@@ -17,6 +17,13 @@ import { Button } from "@/components/ui/button";
 import { ImageUpload } from "@/components/image-upload";
 import { Textarea } from "@/components/ui/textarea";
 import { Stars, ratingOf } from "@/components/reviews";
+const SERVICE_CATS = ["services","repair","kinyozi","salon","laundry","fundi","carwash","boda","matatu","mpesaagent","water","cyber","ecitizen","photo","clearing","logistics"];
+function unitOptions(cat: string): string[] {
+  if (cat === "houses") return ["unit", "room", "1/8 acre", "1/4 acre", "acre", "m²"];
+  if (cat === "cars") return ["unit"];
+  if (SERVICE_CATS.includes(cat)) return ["job", "visit", "hour", "day"];
+  return ["piece", "kg", "kiondo", "crate", "dozen", "bag"];
+}
 export const Route = createFileRoute("/_authenticated/vendor")({ component: VendorDashboard });
 function VendorDashboard() {
   const { session } = useSession();
@@ -54,7 +61,7 @@ function VendorDashboard() {
     if (np.title.trim().length < 2) return toast.error("Give the product a name");
     const price = Number(np.price);
     if (!price || price <= 0) return toast.error("Set a selling price");
-    const { error } = await supabase.from("products").insert({ vendor_id: vendor.id, title: np.title.trim(), price_kes: price, stock: Number(np.stock) || 0, category_slug: np.category, unit: np.unit || "piece", condition: np.condition, brand: np.brand.trim() || null, offer_price_kes: Number(np.offer) > 0 ? Number(np.offer) : null, image_url: np.image || np.imageUrl.trim() || null, description: np.desc.trim() || null, is_active: true });
+    const { error } = await supabase.from("products").insert({ vendor_id: vendor.id, title: np.title.trim(), price_kes: price, stock: Number(np.stock) || 0, category_slug: np.category, unit: unitOptions(np.category).includes(np.unit) ? np.unit : unitOptions(np.category)[0] || "piece", condition: np.condition, brand: np.brand.trim() || null, offer_price_kes: Number(np.offer) > 0 ? Number(np.offer) : null, image_url: np.image || np.imageUrl.trim() || null, description: np.desc.trim() || null, is_active: true });
     if (error) return toast.error(error.message);
     setNp({ title: "", price: "", stock: "", category: "produce", unit: "piece", image: "", desc: "" });
     qc.invalidateQueries();
@@ -327,7 +334,7 @@ function VendorDashboard() {
           <div><Label>Product name</Label><Input value={np.title} onChange={(e) => setNp({ ...np, title: e.target.value })} placeholder="e.g. Fresh tomatoes (kiondo)" /></div>
           <div><Label>Price (KSh)</Label><Input type="number" value={np.price} onChange={(e) => setNp({ ...np, price: e.target.value })} placeholder="250" /></div>
           <div><Label>Offer price (optional)</Label><Input type="number" value={np.offer} onChange={(e) => setNp({ ...np, offer: e.target.value })} placeholder="Original stays crossed out" /></div>
-          <div><Label>Stock</Label><Input type="number" value={np.stock} onChange={(e) => setNp({ ...np, stock: e.target.value })} placeholder="40" /></div>
+          <div><Label>{np.category === "houses" || np.category === "cars" ? "Units available" : SERVICE_CATS.includes(np.category) ? "Slots per day" : "Stock"}</Label><Input type="number" value={np.stock} onChange={(e) => setNp({ ...np, stock: e.target.value })} placeholder="40" /></div>
           <div><Label>Condition</Label>
             <div className="mt-1 flex gap-2">
               {["brand new", "used"].map((cd) => (<button key={cd} type="button" onClick={() => setNp({ ...np, condition: cd })} className={"rounded-full px-3 py-1.5 text-xs font-semibold capitalize " + (np.condition === cd ? "bg-primary text-primary-foreground" : "bg-secondary")}>{cd}</button>))}
@@ -335,13 +342,13 @@ function VendorDashboard() {
           </div>
           <div><Label>Unit</Label>
             <div className="mt-1 flex flex-wrap gap-2">
-              {["piece", "kg", "kiondo", "crate", "dozen", "bag"].map((u) => (<button key={u} type="button" onClick={() => setNp({ ...np, unit: u })} className={"rounded-full px-3 py-1.5 text-xs font-semibold " + (np.unit === u ? "bg-primary text-primary-foreground" : "bg-secondary")}>{u}</button>))}
+              {unitOptions(np.category).map((u) => (<button key={u} type="button" onClick={() => setNp({ ...np, unit: u })} className={"rounded-full px-3 py-1.5 text-xs font-semibold " + (np.unit === u ? "bg-primary text-primary-foreground" : "bg-secondary")}>{u}</button>))}
             </div>
           </div>
           <div className="sm:col-span-2"><Label>Category</Label>
             <div className="mt-1 flex flex-wrap gap-2">
               {[["produce", "Fresh Produce"], ["electronics", "Electronics"], ["fashion", "Fashion"], ["household", "Household"], ["furniture", "Furniture"], ["beauty", "Beauty"], ["hardware", "Hardware & Tools"], ["houses", "Houses & Real Estate"], ["cars", "Cars & Vehicles"], ["importexport", "Import & Export"], ["clearing", "Clearing & Forwarding"], ["logistics", "Logistics & Courier"], ["clearing", "Clearing & Forwarding"], ["logistics", "Logistics & Courier"], ["kinyozi", "Kinyozi / Barber"], ["salon", "Salon / Braiding"], ["laundry", "Laundry / Mama Fua"], ["fundi", "Fundi / Technician"], ["carwash", "Car Wash"], ["boda", "Boda Boda"], ["matatu", "Matatu / Agent"], ["mpesaagent", "M-Pesa Agent"], ["water", "Water Vendor"], ["cyber", "Cybercafé"], ["ecitizen", "eCitizen Agent"], ["photo", "Photo Studio"], ["services", "Services"], ["repair", "Repair & Construction"], ["other", "Other"]].map((c: any) => (
-                <button key={c[0]} type="button" onClick={() => setNp({ ...np, category: c[0] })} className={"rounded-full px-3 py-1.5 text-xs font-semibold " + (np.category === c[0] ? "bg-primary text-primary-foreground" : "bg-secondary")}>{c[1]}</button>
+                <button key={c[0]} type="button" onClick={() => setNp({ ...np, category: c[0], unit: unitOptions(c[0])[0] })} className={"rounded-full px-3 py-1.5 text-xs font-semibold " + (np.category === c[0] ? "bg-primary text-primary-foreground" : "bg-secondary")}>{c[1]}</button>
               ))}
             </div>
           </div>

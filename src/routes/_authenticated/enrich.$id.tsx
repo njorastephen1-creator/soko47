@@ -28,10 +28,25 @@ function EnrichPage() {
   const f = form || (product ? { condition: product.condition || "new", brand: product.brand || "", model: product.model || "", description: product.description || "", images: ([product.image_url].concat((product.images as string[]) || [])).filter(Boolean), specs: (product.specs as any[]) || [], video_url: product.video_url || "", highlights: (product.highlights as string[]) || [], faqs: (product.faqs as any[]) || [] } : null);
   if (!product || !f) return <p className="py-16 text-center text-muted-foreground">Loading...</p>;
   if (product.vendors && session && product.vendors.user_id !== session.user.id) return <p className="py-16 text-center text-muted-foreground">Only the shop owner can edit this listing.</p>;
+  const pickGalleryVideo = async (ev: React.ChangeEvent<HTMLInputElement>) => {
+    const file = ev.target.files && ev.target.files[0];
+    if (!file) return;
+    if (file.size > 48 * 1024 * 1024) return toast.error("Video too big - max 48MB");
+    setUploading(true);
+    try {
+      const path = "gal-" + Date.now() + "-" + file.name.replace(/[^a-zA-Z0-9.]+/g, "-");
+      const { error } = await supabase.storage.from("videos").upload(path, file, { contentType: file.type });
+      if (error) { toast.error(error.message); return; }
+      const pub = supabase.storage.from("videos").getPublicUrl(path).data.publicUrl;
+      await addPhoto(pub);
+      toast.success("Video added to gallery");
+    } catch { toast.error("Could not upload video"); }
+    finally { setUploading(false); }
+  };
   const pickVideo = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
-    if (file.size > 20 * 1024 * 1024) return toast.error("Video too big - max 20MB");
+    if (file.size > 48 * 1024 * 1024) return toast.error("Video too big - max 48MB");
     setUploading(true);
     try {
       const dur = await new Promise<number>((resolve, reject) => {
@@ -42,7 +57,7 @@ function EnrichPage() {
         v.onerror = () => reject(new Error("bad"));
         v.src = url;
       });
-      if (dur > 90.5) { toast.error("Video too long - max 1 minute 30 seconds"); return; }
+      
       const path = session!.user.id + "-" + Date.now() + "-" + file.name.replace(/[^a-zA-Z0-9.]+/g, "-");
       const { error } = await supabase.storage.from("videos").upload(path, file, { contentType: file.type });
       if (error) { toast.error(error.message); return; }
@@ -125,6 +140,8 @@ function EnrichPage() {
             <label className="cursor-pointer rounded-md border border-border bg-secondary px-3 py-2 text-xs font-semibold hover:bg-secondary/70">
               {uploading ? "Uploading..." : "Upload video"}
               <input type="file" accept="video/*" className="hidden" onChange={pickVideo} disabled={uploading} />
+        <Button type="button" variant="outline" className="mt-2" onClick={() => (document.getElementById("galvid") as HTMLInputElement)?.click()}>{uploading ? "Uploading..." : "Add video to gallery"}</Button>
+        <input id="galvid" type="file" accept="video/*" className="hidden" onChange={pickGalleryVideo} disabled={uploading} />
             </label>
             <span className="text-[11px] text-muted-foreground">or paste a YouTube/mp4 link</span>
           </div>

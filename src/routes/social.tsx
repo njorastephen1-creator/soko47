@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ImageUpload } from "@/components/image-upload";
+import { VideoUpload } from "@/components/video-upload";
 import { stkPush, stkStatus } from "@/lib/mpesa";
 export const Route = createFileRoute("/social")({ component: SocialPage });
 function when(t: string) { const d = new Date(t); const now = new Date(); if (d.toDateString() === now.toDateString()) return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); return d.toLocaleDateString(); }
@@ -93,7 +94,7 @@ function SocialPage() {
             <div><Label>Description</Label><Textarea value={desc} onChange={(e) => setDesc(e.target.value)} rows={2} placeholder="Tell buyers why..." /></div>
             <div><Label>Tags</Label><Input value={tags} onChange={(e) => setTags(e.target.value)} placeholder="avocado, fresh, nakuru" /></div>
             {kind === "photo" || kind === "story" ? <div><Label>Photo</Label><ImageUpload value={media} onChange={(u) => setMedia(u)} /></div> : null}
-            {kind === "video" ? <div><Label>Video link</Label><Input value={mediaUrl} onChange={(e) => setMediaUrl(e.target.value)} placeholder="https://...mp4" /></div> : null}
+            {kind === "video" ? (<div><Label>Upload video</Label><VideoUpload value={mediaUrl} onChange={setMediaUrl} /><p className="mt-1 text-xs text-muted-foreground">or paste a link instead</p><Input value={mediaUrl} onChange={(e) => setMediaUrl(e.target.value)} placeholder="https://...mp4" /></div>) : null}
             <Button onClick={createPost}>{kind === "story" ? "Post 24h story" : "Post ad"}</Button>
           </div>
         </div>
@@ -112,7 +113,7 @@ function SocialPage() {
             {p.body ? <p className="mt-1 text-sm text-muted-foreground">{p.body}</p> : null}
             {tagsOf(p).length > 0 ? <div className="mt-1 flex flex-wrap gap-1">{tagsOf(p).map((t) => (<button key={t} onClick={() => setActiveTag(t)} className="text-[11px] font-semibold text-accent-deep">#{t}</button>))}</div> : null}
             {p.kind !== "video" && p.media_url ? <img src={p.media_url} alt={p.title || "ad"} className="mt-3 max-h-96 w-full rounded-xl object-cover" /> : null}
-            {p.kind === "video" && p.media_url ? <video src={p.media_url} controls autoPlay muted loop playsInline className="mt-3 w-full rounded-xl border border-border" /> : null}
+            {p.kind === "video" && p.media_url ? <div className="mt-3 w-full overflow-hidden rounded-xl bg-black"><video src={p.media_url} controls autoPlay muted loop playsInline className="mx-auto max-h-[75vh] w-full object-contain" /></div> : null}
             {p.author_shop_slug ? <Link to={"/shop/" + p.author_shop_slug} className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-accent-deep"><Store className="size-3.5" /> Visit shop</Link> : null}
             <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
               <button onClick={() => toggleLike(p.id)} className={"flex items-center gap-1 " + (myLikes[p.id] ? "text-red-500" : "text-muted-foreground")}><Heart className={"size-4 " + (myLikes[p.id] ? "fill-red-500" : "")} /> {likesCount[p.id] || 0}</button>
@@ -126,7 +127,11 @@ function SocialPage() {
               {session && p.user_id === session.user.id && !boosted(p) ? (<button onClick={() => boost(p)} className="flex items-center gap-1 rounded-full bg-accent/15 px-2 py-0.5 text-[11px] font-bold text-accent-deep"><Zap className="size-3" /> Boost KSh {Number(settings.boost_price)}</button>) : null}
             </div>
             {openComments === p.id ? (
-              <div className="mt-3 space-y-2 border-t border-border pt-3">
+              <div className="fixed inset-0 z-50 bg-black/50" onClick={() => setOpenComments(null)}>
+              <div className="absolute inset-x-0 bottom-0 mx-auto max-h-[70vh] max-w-2xl overflow-y-auto rounded-t-3xl bg-card p-4" onClick={(e) => e.stopPropagation()}>
+              <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-border" />
+              <p className="text-center text-sm font-semibold">{(commentsByPost[p.id] || []).length} comments</p>
+              <div className="mt-3 space-y-2">
                 {(commentsByPost[p.id] || []).filter((c: any) => !c.parent_id).map((c: any) => (
                   <div key={c.id}>
                     <p className="text-xs font-semibold">{c.author_name} <span className="font-normal text-muted-foreground">· {when(c.created_at)}</span></p>
@@ -136,7 +141,8 @@ function SocialPage() {
                     {replyTo === c.id ? (<div className="ml-4 mt-1 flex gap-2"><Input value={replyBody} onChange={(e) => setReplyBody(e.target.value)} placeholder="Reply..." /><Button size="sm" onClick={() => submitComment(p.id, c.id)}>Send</Button></div>) : null}
                   </div>
                 ))}
-                <div className="flex gap-2"><Input value={commentBody} onChange={(e) => setCommentBody(e.target.value)} placeholder="Write a comment..." /><Button onClick={() => submitComment(p.id, null)}>Comment</Button></div>
+                <div className="flex gap-2"><Input value={commentBody} onChange={(e) => setCommentBody(e.target.value)} placeholder="Add a comment..." /><Button onClick={() => submitComment(p.id, null)}>Post</Button></div>
+              </div>
               </div>
             ) : null}
           </div>

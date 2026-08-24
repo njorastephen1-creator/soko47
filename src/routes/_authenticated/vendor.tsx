@@ -136,11 +136,16 @@ function VendorDashboard() {
   };
   if (loading) return <p className="py-16 text-center text-muted-foreground">Loading your dashboard...</p>;
   if (!vendor) return (
-    <div className="mx-auto max-w-md px-4 py-16 text-center">
-      <Store className="mx-auto size-12 text-accent" />
-      <h1 className="mt-3 font-display text-2xl font-bold">No trader shop yet</h1>
-      <p className="mt-2 text-sm text-muted-foreground">Open your digital stall in 3 minutes and start selling to all of Kenya.</p>
-      <Button asChild className="mt-4"><Link to="/sell">Open a shop</Link></Button>
+    <div className="mx-auto max-w-md px-4 py-16">
+      <div className="rounded-3xl border border-border bg-card p-6 text-center">
+        <Store className="mx-auto size-12 text-accent" />
+        <h1 className="mt-3 font-display text-2xl font-bold">Open your trader shop</h1>
+        <p className="mt-2 text-sm text-muted-foreground">Name your shop and start selling to all of Kenya in 3 minutes.</p>
+        <div className="mt-4 space-y-3 text-left">
+          <div><Label>Shop name</Label><Input value={newShop} onChange={(e) => setNewShop(e.target.value)} placeholder="e.g. Mama Mboga Stall" /></div>
+          <Button className="w-full" onClick={openShop}>Create my shop</Button>
+        </div>
+      </div>
     </div>
   );
   const shopUrl = (typeof window !== "undefined" ? window.location.origin : "") + "/shop/" + vendor.slug;

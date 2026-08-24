@@ -1,9 +1,9 @@
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import tusModule from "tus-js-client";
+import { Upload } from "tus-js-client";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-const tus: any = (tusModule as any).Upload ? tusModule : ((tusModule as any).default || tusModule);
+
 const env = (import.meta as any).env || {};
 const SUPABASE_URL = env.VITE_SUPABASE_URL || "";
 const SUPABASE_ANON = env.VITE_SUPABASE_PUBLISHABLE_KEY || env.VITE_SUPABASE_ANON_KEY || env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY || "";
@@ -30,7 +30,7 @@ export function VideoUpload({ value, onChange }: { value: string; onChange: (u: 
       const token = data && data.session ? data.session.access_token : SUPABASE_ANON;
       let started = false;
       let wd: any = null;
-      const upload = new tus.Upload(file, SUPABASE_URL + "/storage/v1/upload/resumable", {
+      const upload = new Upload(file, SUPABASE_URL + "/storage/v1/upload/resumable", {
         headers: { apikey: SUPABASE_ANON, authorization: "Bearer " + token, "x-upsert": "true" },
         uploadDataDuringCreation: true,
         retryDelays: [0, 3000, 5000, 10000, 20000],

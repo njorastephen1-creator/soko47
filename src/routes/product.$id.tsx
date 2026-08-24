@@ -64,7 +64,7 @@ function ProductPage() {
       <div className="mt-4 grid gap-8 lg:grid-cols-2">
         <div>
           <div className="relative overflow-hidden rounded-3xl border border-border bg-card">
-            {gallery[img] ? {isVid(gallery[img]) ? <video src={gallery[img]} controls playsInline className="aspect-[4/3] w-full bg-black object-contain" /> : <img src={gallery[img]} alt={product.title} className="aspect-[4/3] w-full object-cover" />} : <div className="flex aspect-[4/3] items-center justify-center text-muted-foreground"><ShoppingBasket className="size-16" /></div>}
+            {gallery[img] ? (isVid(gallery[img]) ? <video src={gallery[img]} controls playsInline className="aspect-[4/3] w-full bg-black object-contain" /> : <img src={gallery[img]} alt={product.title} className="aspect-[4/3] w-full object-cover" />) : <div className="flex aspect-[4/3] items-center justify-center text-muted-foreground"><ShoppingBasket className="size-16" /></div>}
             <LikeButton productId={product.id} likes={Number(product.likes_count || 0)} className="absolute right-3 top-3" />
           </div>
           {gallery.length > 1 && (

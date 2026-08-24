@@ -1,4 +1,5 @@
-import { useRef, useState } from "react";
+import fs from 'fs';
+fs.writeFileSync('src/components/video-upload.tsx', `import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -42,3 +43,5 @@ export function VideoUpload({ value, onChange }: { value: string; onChange: (u: 
 }
 function SUPABASE_UPLOAD(objectName: string, type: string) { return ""; }
 const env = (import.meta as any).env || {};
+`);
+console.log('DONE: 45MB cap with clear notice');

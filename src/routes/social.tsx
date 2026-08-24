@@ -37,12 +37,12 @@ function SocialPage() {
   const [editForm, setEditForm] = useState<any>(null);
   const [expanded, setExpanded] = useState<any>({});
   const { data: myProf } = useQuery({ queryKey: ["social-prof", session ? session.user.id : "anon"], enabled: !!session, queryFn: async () => { const { data } = await supabase.from("user_profiles").select("display_name, social_expires_at").eq("user_id", session!.user.id).maybeSingle(); return data || null; } });
-  const { data: posts } = useQuery({ queryKey: ["social-posts"], queryFn: async () => { const { data } = await supabase.from("posts").select("*").order("created_at", { ascending: false }).limit(100); return data || []; } });
-  const { data: allLikes } = useQuery({ queryKey: ["social-likes"], queryFn: async () => { const { data } = await supabase.from("post_likes").select("post_id, user_id"); return data || []; } });
-  const { data: allViews } = useQuery({ queryKey: ["social-views"], queryFn: async () => { const { data } = await supabase.from("post_views").select("post_id"); return data || []; } });
+  const { data: posts } = useQuery({ queryKey: ["social-posts"], refetchInterval: 20000, queryFn: async () => { const { data } = await supabase.from("posts").select("*").order("created_at", { ascending: false }).limit(100); return data || []; } });
+  const { data: allLikes } = useQuery({ queryKey: ["social-likes"], refetchInterval: 20000, queryFn: async () => { const { data } = await supabase.from("post_likes").select("post_id, user_id"); return data || []; } });
+  const { data: allViews } = useQuery({ queryKey: ["social-views"], refetchInterval: 20000, queryFn: async () => { const { data } = await supabase.from("post_views").select("post_id"); return data || []; } });
   const { data: mySaves } = useQuery({ queryKey: ["social-saves", session ? session.user.id : "anon"], enabled: !!session, queryFn: async () => { const { data } = await supabase.from("post_saves").select("post_id").eq("user_id", session!.user.id); return data || []; } });
   const { data: myFollows } = useQuery({ queryKey: ["social-follows", session ? session.user.id : "anon"], enabled: !!session, queryFn: async () => { const { data } = await supabase.from("post_follows").select("author_id").eq("follower_id", session!.user.id); return data || []; } });
-  const { data: comments } = useQuery({ queryKey: ["social-comments"], queryFn: async () => { const { data } = await supabase.from("post_comments").select("*").order("created_at", { ascending: true }); return data || []; } });
+  const { data: comments } = useQuery({ queryKey: ["social-comments"], refetchInterval: 20000, queryFn: async () => { const { data } = await supabase.from("post_comments").select("*").order("created_at", { ascending: true }); return data || []; } });
   const socialActive = isAdm || !!(myProf && myProf.social_expires_at && new Date(myProf.social_expires_at).getTime() > Date.now());
   const myName = myProf && myProf.display_name ? myProf.display_name : (session ? session.user.email.split("@")[0] : "");
   const likesCount: any = {}; const myLikes: any = {};

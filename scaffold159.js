@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import fs from 'fs';
+fs.writeFileSync('src/routes/social.tsx', `import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { BadgeCheck, Bookmark, Eye, Flag, Heart, MessageCircle, Share2, Store, Trash2, UserCheck, UserPlus, X, Zap } from "lucide-react";
 import { useState } from "react";
@@ -153,3 +154,5 @@ function SocialPage() {
     </div>
   );
 }
+`);
+console.log('DONE: social.tsx rewritten cleanly');

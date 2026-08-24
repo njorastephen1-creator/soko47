@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { BadgeCheck, Bookmark, Eye, Flag, Heart, MessageCircle, Share2, Store, Trash2, UserCheck, UserPlus, X, Zap } from "lucide-react";
+import { BadgeCheck, Bookmark, Pencil, Eye, Flag, Heart, MessageCircle, Share2, Store, Trash2, UserCheck, UserPlus, X, Zap } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,6 +33,8 @@ function SocialPage() {
   const [commentBody, setCommentBody] = useState(""); const [replyTo, setReplyTo] = useState<string | null>(null); const [replyBody, setReplyBody] = useState("");
   const [activeTag, setActiveTag] = useState(""); const [search, setSearch] = useState(""); const [sort, setSort] = useState("newest"); const [feedTab, setFeedTab] = useState("foryou");
   const [showForm, setShowForm] = useState(false);
+  const [editingPost, setEditingPost] = useState<any>(null);
+  const [editForm, setEditForm] = useState<any>(null);
   const { data: myProf } = useQuery({ queryKey: ["social-prof", session ? session.user.id : "anon"], enabled: !!session, queryFn: async () => { const { data } = await supabase.from("user_profiles").select("display_name, social_expires_at").eq("user_id", session!.user.id).maybeSingle(); return data || null; } });
   const { data: posts } = useQuery({ queryKey: ["social-posts"], queryFn: async () => { const { data } = await supabase.from("posts").select("*").order("created_at", { ascending: false }).limit(100); return data || []; } });
   const { data: allLikes } = useQuery({ queryKey: ["social-likes"], queryFn: async () => { const { data } = await supabase.from("post_likes").select("post_id, user_id"); return data || []; } });
@@ -64,6 +66,14 @@ function SocialPage() {
   const share = async (p: any) => { const link = window.location.origin + "/social#" + p.id; if (navigator.share) navigator.share({ title: p.title || "Soko47 Social", url: link }); else { navigator.clipboard.writeText(link); toast.success("Link copied"); } };
   const report = async (p: any) => { if (!session) return toast.error("Sign in to report"); const reason = window.prompt("Why are you reporting this ad?"); if (!reason) return; await supabase.from("post_reports").insert({ post_id: p.id, reporter_id: session.user.id, reason }); toast.success("Reported - our team will review"); };
   const boost = async (p: any) => { if (!session) return; setPaying(true); try { const d = await stkPush(payPhone.trim() || "254700000000", Number(settings.boost_price), "BOOST-" + p.id.slice(0, 8), myName); const invoice = d.invoice_id || d.id || (d.invoice && d.invoice.invoice_id); if (!invoice) throw new Error(d.error || "No invoice"); for (let i = 0; i < 20; i++) { await new Promise((r2) => setTimeout(r2, 4000)); const s = await stkStatus(invoice); const state = String((s.invoice && s.invoice.state) || s.state || s.status || "").toLowerCase(); if (["complete", "completed", "paid", "success"].includes(state)) { await supabase.from("posts").update({ boosted_until: new Date(Date.now() + 24 * 3600 * 1000).toISOString() }).eq("id", p.id); qc.invalidateQueries(); toast.success("Boosted to the top for 24 hours!"); setPaying(false); return; } if (["failed", "cancelled", "canceled"].includes(state)) throw new Error("Payment " + state); } toast.success("Boost pending - check M-Pesa."); } catch (e: any) { toast.error(String(e.message || e)); } finally { setPaying(false); } };
+  const startEdit = (p: any) => { setEditingPost(p); setEditForm({ title: p.title || "", body: p.body || "", tags: p.tags || "", media_url: p.media_url || "" }); };
+  const saveEdit = async () => {
+    if (!editingPost) return;
+    const { error } = await supabase.from("posts").update({ title: editForm.title.trim() || null, body: editForm.body.trim() || null, tags: editForm.tags.trim() || null, media_url: editForm.media_url.trim() || null }).eq("id", editingPost.id);
+    if (error) return toast.error(error.message);
+    setEditingPost(null); setEditForm(null); qc.invalidateQueries(); toast.success("Ad updated");
+  };
+  const cancelEdit = () => { setEditingPost(null); setEditForm(null); };
   const delPost = async (p: any) => { if (!window.confirm("Delete your ad?")) return; await supabase.from("posts").delete().eq("id", p.id); qc.invalidateQueries(); toast.success("Ad deleted"); };
   const submitComment = async (postId: string, parentId: string | null) => { if (!session) return toast.error("Sign in to comment"); const text = parentId ? replyBody : commentBody; if (!text.trim()) return toast.error("Write something first"); await supabase.from("post_comments").insert({ post_id: postId, user_id: session.user.id, parent_id: parentId, body: text.trim(), author_name: myName }); setCommentBody(""); setReplyBody(""); setReplyTo(null); qc.invalidateQueries(); };
   return (
@@ -113,7 +123,7 @@ function SocialPage() {
             {p.body ? <p className="mt-1 text-sm text-muted-foreground">{p.body}</p> : null}
             {tagsOf(p).length > 0 ? <div className="mt-1 flex flex-wrap gap-1">{tagsOf(p).map((t) => (<button key={t} onClick={() => setActiveTag(t)} className="text-[11px] font-semibold text-accent-deep">#{t}</button>))}</div> : null}
             {p.kind !== "video" && p.media_url ? <img src={p.media_url} alt={p.title || "ad"} className="mt-3 max-h-96 w-full rounded-xl object-cover" /> : null}
-            {p.kind === "video" && p.media_url ? (<div className="mt-3 w-full overflow-hidden rounded-xl bg-black"><video src={p.media_url} controls autoPlay muted loop playsInline className="mx-auto max-h-[75vh] w-full object-contain" /></div>) : null}
+            {p.kind === "video" && p.media_url ? (<div className="mt-3 w-full overflow-hidden rounded-xl bg-black"><video src={p.media_url} controls autoPlay muted loop playsInline className="mx-auto max-h-[90vh] w-full object-contain" /></div>) : null}
             {p.author_shop_slug ? <Link to={"/shop/" + p.author_shop_slug} className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-accent-deep"><Store className="size-3.5" /> Visit shop</Link> : null}
             <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
               <button onClick={() => toggleLike(p.id)} className={"flex items-center gap-1 " + (myLikes[p.id] ? "text-red-500" : "text-muted-foreground")}><Heart className={"size-4 " + (myLikes[p.id] ? "fill-red-500" : "")} /> {likesCount[p.id] || 0}</button>
@@ -130,6 +140,32 @@ function SocialPage() {
         ))}
         {feed.length === 0 && <p className="text-sm text-muted-foreground">Nothing here yet - follow traders or post the first ad!</p>}
       </div>
+      {editingPost ? (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 p-4" onClick={cancelEdit}>
+          <div className="mx-auto my-8 max-w-lg rounded-3xl bg-card p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h2 className="font-display text-xl font-bold">Edit your ad</h2>
+              <button onClick={cancelEdit} className="text-muted-foreground"><X className="size-5" /></button>
+            </div>
+            <div className="mt-4 space-y-3">
+              <div><Label>Title</Label><Input value={editForm.title} onChange={(e) => setEditForm({ ...editForm, title: e.target.value })} /></div>
+              <div><Label>Description</Label><Textarea value={editForm.body} onChange={(e) => setEditForm({ ...editForm, body: e.target.value })} rows={3} /></div>
+              <div><Label>Tags</Label><Input value={editForm.tags} onChange={(e) => setEditForm({ ...editForm, tags: e.target.value })} placeholder="comma, separated, tags" /></div>
+              <div><Label>Media</Label>
+                <div className="mt-1 flex flex-wrap gap-2">
+                  <Button variant="outline" size="sm" onClick={() => { const url = window.prompt("Paste new image or video link (leave empty to remove)"); if (url !== null) setEditForm({ ...editForm, media_url: url }); }}>Change link</Button>
+                  <ImageUpload value={editForm.media_url} onChange={(u) => setEditForm({ ...editForm, media_url: u })} />
+                </div>
+                {editForm.media_url ? (<div className="mt-2">{editingPost.kind === "video" ? <video src={editForm.media_url} controls className="max-h-48 rounded-xl" /> : <img src={editForm.media_url} alt="" className="max-h-48 rounded-xl" />}</div>) : null}
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={saveEdit}>Save changes</Button>
+                <Button variant="outline" onClick={cancelEdit}>Cancel</Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
       {openComments ? (
         <div className="fixed inset-0 z-50 bg-black/50" onClick={() => setOpenComments(null)}>
           <div className="absolute inset-x-0 bottom-0 mx-auto max-h-[70vh] max-w-2xl overflow-y-auto rounded-t-3xl bg-card p-4" onClick={(e) => e.stopPropagation()}>

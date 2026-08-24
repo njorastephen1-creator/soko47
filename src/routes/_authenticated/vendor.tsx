@@ -43,6 +43,8 @@ function VendorDashboard() {
   const [payPhone, setPayPhone] = useState("");
   const [prodFilter, setProdFilter] = useState("all");
   const [prodSearch, setProdSearch] = useState("");
+  const [prodPage, setProdPage] = useState(0);
+  const [prodCat, setProdCat] = useState("all");
   const [offers, setOffers] = useState<any>({});
   const [ordFilter, setOrdFilter] = useState("all");
   const [ordPage, setOrdPage] = useState(0);
@@ -359,9 +361,19 @@ function VendorDashboard() {
           {["all", "active", "hidden"].map((f) => (
             <button key={f} onClick={() => setProdFilter(f)} className={"rounded-full px-3 py-1 text-xs font-semibold capitalize " + (prodFilter === f ? "bg-primary text-primary-foreground" : "bg-secondary")}>{f === "active" ? "Live" : f}</button>
           ))}
+          <select value={prodCat} onChange={(e) => { setProdCat(e.target.value); setProdPage(0); }} className="rounded-full border border-border bg-card px-2 py-1 text-xs font-semibold">
+            <option value="all">All categories</option>
+            {Array.from(new Set((products || []).map((pp: any) => pp.category_slug).filter(Boolean))).map((cc: any) => (<option key={cc} value={cc}>{cc}</option>))}
+          </select>
         </div>
+        {(() => {
+          const filtered = (products || []).filter((p: any) => (prodFilter === "all" ? true : prodFilter === "active" ? p.is_active : !p.is_active)).filter((p: any) => p.title.toLowerCase().includes(prodSearch.toLowerCase())).filter((p: any) => (prodCat === "all" ? true : p.category_slug === prodCat));
+          const pages = Math.max(0, Math.ceil(filtered.length / 10) - 1);
+          const page = Math.min(prodPage, pages);
+          const slice = filtered.slice(page * 10, page * 10 + 10);
+          return (<>
         <div className="mt-3 space-y-2">
-          {(products || []).filter((p: any) => (prodFilter === "all" ? true : prodFilter === "active" ? p.is_active : !p.is_active)).filter((p: any) => p.title.toLowerCase().includes(prodSearch.toLowerCase())).map((p: any) => (
+          {slice.map((p: any) => (
             <div key={p.id} className="rounded-xl border border-border p-2">
               <div className="flex items-center gap-3">
                 {p.image_url ? <img src={p.image_url} alt="" className="size-12 rounded-lg object-cover" /> : null}
@@ -379,8 +391,15 @@ function VendorDashboard() {
               </div>
             </div>
           ))}
-          {(products || []).length === 0 && <p className="text-sm text-muted-foreground">No products yet - add your first one.</p>}
+          {filtered.length === 0 && <p className="text-sm text-muted-foreground">No products match - adjust your filters.</p>}
         </div>
+        <div className="mt-3 flex items-center justify-between text-xs font-semibold">
+          <button disabled={page === 0} onClick={() => setProdPage(page - 1)} className="rounded-full bg-secondary px-3 py-1 disabled:opacity-40">Previous</button>
+          <span>{filtered.length} products · page {page + 1} of {pages + 1}</span>
+          <button disabled={page >= pages} onClick={() => setProdPage(page + 1)} className="rounded-full bg-secondary px-3 py-1 disabled:opacity-40">Next</button>
+        </div>
+          </>);
+        })()}
       </div>
     </div>
   );

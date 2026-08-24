@@ -338,7 +338,7 @@ function VendorDashboard() {
               {["piece", "kg", "kiondo", "crate", "dozen", "bag"].map((u) => (<button key={u} type="button" onClick={() => setNp({ ...np, unit: u })} className={"rounded-full px-3 py-1.5 text-xs font-semibold " + (np.unit === u ? "bg-primary text-primary-foreground" : "bg-secondary")}>{u}</button>))}
             </div>
           </div>
-          <div className="sm:col-span-2"><Label>Category (10 like Jiji)</Label>
+          <div className="sm:col-span-2"><Label>Category</Label>
             <div className="mt-1 flex flex-wrap gap-2">
               {[["produce", "Fresh Produce"], ["electronics", "Electronics"], ["fashion", "Fashion"], ["household", "Household"], ["furniture", "Furniture"], ["beauty", "Beauty"], ["hardware", "Hardware & Tools"], ["services", "Services"], ["repair", "Repair & Construction"], ["other", "Other"]].map((c: any) => (
                 <button key={c[0]} type="button" onClick={() => setNp({ ...np, category: c[0] })} className={"rounded-full px-3 py-1.5 text-xs font-semibold " + (np.category === c[0] ? "bg-primary text-primary-foreground" : "bg-secondary")}>{c[1]}</button>

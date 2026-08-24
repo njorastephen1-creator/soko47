@@ -16,6 +16,10 @@ import { ImageUpload } from "@/components/image-upload";
 import { VideoUpload } from "@/components/video-upload";
 import { stkPush, stkStatus } from "@/lib/mpesa";
 export const Route = createFileRoute("/social")({ component: SocialPage });
+function Avatar({ name, small }: any) {
+  const ch = (name || "?").charAt(0).toUpperCase();
+  return <span className={"flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent font-bold text-white " + (small ? "size-7 text-xs" : "size-9 text-sm")}>{ch}</span>;
+}
 function when(t: string) { const d = new Date(t); const now = new Date(); if (d.toDateString() === now.toDateString()) return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); return d.toLocaleDateString(); }
 function tagsOf(p: any) { return String(p.tags || "").split(",").map((t: string) => t.trim()).filter(Boolean); }
 function boosted(p: any) { return !!(p.boosted_until && new Date(p.boosted_until).getTime() > Date.now()); }
@@ -190,21 +194,22 @@ function SocialPage() {
       ) : null}
       {openComments ? (
         <div className="fixed inset-0 z-50 bg-black/80" onClick={() => setOpenComments(null)}>
-          <div className="absolute inset-x-0 bottom-0 mx-auto flex max-h-[80vh] max-w-2xl flex-col rounded-t-3xl bg-card" onClick={(e) => e.stopPropagation()}>
-            <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-border" />
+          <div className="absolute left-1/2 top-1/2 flex max-h-[82vh] w-[92%] max-w-md -translate-x-1/2 -translate-y-1/2 flex-col rounded-3xl bg-card" onClick={(e) => e.stopPropagation()}>
             <div className="relative flex items-center justify-center px-4 py-3">
-              <p className="text-sm font-semibold">Comments ({(commentsByPost[openComments] || []).length})</p>
+              <p className="text-sm font-semibold">Comments</p>
               <button onClick={() => setOpenComments(null)} className="absolute right-3 text-muted-foreground"><X className="size-5" /></button>
             </div>
-            <div className="flex-1 space-y-3 overflow-y-auto px-4 pb-3">
+            <div className="flex-1 space-y-4 overflow-y-auto px-4 pb-3">
               {(commentsByPost[openComments] || []).filter((cc: any) => !cc.parent_id).map((cc: any) => (
                 <div key={cc.id} className="flex items-start gap-2">
+                  <Avatar name={cc.author_name} />
                   <div className="flex-1">
-                    <p className="text-xs font-semibold">{cc.author_name} <span className="font-normal text-muted-foreground">· {when(cc.created_at)}</span></p>
+                    <p className="text-xs font-semibold">{cc.author_name} <span className="font-normal text-muted-foreground">{when(cc.created_at)}</span></p>
                     <p className="mt-0.5 text-sm">{cc.body}</p>
-                    <button className="mt-0.5 text-xs font-semibold text-accent-deep" onClick={() => setReplyTo(replyTo === cc.id ? null : cc.id)}>Reply</button>
+                    <button className="mt-0.5 text-xs font-semibold text-muted-foreground" onClick={() => setReplyTo(replyTo === cc.id ? null : cc.id)}>Reply</button>
                     {(commentsByPost[openComments] || []).filter((r: any) => r.parent_id === cc.id).map((r: any) => (
-                      <div key={r.id} className="mt-1 flex items-start gap-2 rounded-xl bg-secondary/60 p-2">
+                      <div key={r.id} className="mt-2 flex items-start gap-2">
+                        <Avatar name={r.author_name} small />
                         <div className="flex-1"><p className="text-xs font-semibold">{r.author_name}</p><p className="text-sm">{r.body}</p></div>
                         <button onClick={() => toggleCommentLike(r.id)} className={"pt-0.5 " + (myCommentLikes[r.id] ? "text-red-500" : "text-muted-foreground")}><Heart className={"size-4 " + (myCommentLikes[r.id] ? "fill-red-500" : "")} /></button>
                       </div>
@@ -219,9 +224,14 @@ function SocialPage() {
               ))}
               {(commentsByPost[openComments] || []).length === 0 && <p className="py-6 text-center text-sm text-muted-foreground">Be the first to comment.</p>}
             </div>
-            <div className="flex gap-2 border-t border-border p-3">
-              <Input value={commentBody} onChange={(e) => setCommentBody(e.target.value)} placeholder="Add a comment..." />
-              <Button onClick={() => submitComment(openComments, null)}>Post</Button>
+            <div className="border-t border-border p-3">
+              <div className="mb-2 flex justify-between px-1">
+                {["❤️", "🙌", "🔥", "", "😢", "😍", "😮", "😂"].map((e) => (<button key={e} className="text-xl" onClick={() => setCommentBody(commentBody + e)}>{e}</button>))}
+              </div>
+              <div className="flex gap-2">
+                <Input value={commentBody} onChange={(e) => setCommentBody(e.target.value)} placeholder="Join the conversation..." />
+                <Button onClick={() => submitComment(openComments, null)}>Post</Button>
+              </div>
             </div>
           </div>
         </div>

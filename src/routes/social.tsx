@@ -35,6 +35,7 @@ function SocialPage() {
   const [payPhone, setPayPhone] = useState(""); const [paying, setPaying] = useState(false);
   const [openComments, setOpenComments] = useState<string | null>(null);
   const [commentBody, setCommentBody] = useState(""); const [replyTo, setReplyTo] = useState<string | null>(null); const [replyBody, setReplyBody] = useState("");
+  const [editingComment, setEditingComment] = useState<string | null>(null); const [editCommentBody, setEditCommentBody] = useState("");
   const [activeTag, setActiveTag] = useState(""); const [search, setSearch] = useState(""); const [sort, setSort] = useState("newest"); const [feedTab, setFeedTab] = useState("foryou");
   const [showForm, setShowForm] = useState(false);
   const [editingPost, setEditingPost] = useState<any>(null);
@@ -99,6 +100,20 @@ function SocialPage() {
   const cancelEdit = () => { setEditingPost(null); setEditForm(null); };
   const delPost = async (p: any) => { if (!window.confirm("Delete your ad?")) return; await supabase.from("posts").delete().eq("id", p.id); qc.invalidateQueries(); toast.success("Ad deleted"); };
   const toggleCommentLike = async (id: string) => { if (!session) return toast.error("Sign in to like"); if (myCommentLikes[id]) await supabase.from("post_comment_likes").delete().eq("comment_id", id).eq("user_id", session.user.id); else await supabase.from("post_comment_likes").insert({ comment_id: id, user_id: session.user.id }); qc.invalidateQueries({ queryKey: ["social-comment-likes"] }); };
+  const startEditComment = (cmt: any) => { setEditingComment(cmt.id); setEditCommentBody(cmt.body || ""); };
+  const saveEditComment = async (id: string) => {
+    if (!editCommentBody.trim()) return toast.error("Comment cannot be empty");
+    const { error } = await supabase.from("post_comments").update({ body: editCommentBody.trim() }).eq("id", id);
+    if (error) return toast.error(error.message);
+    setEditingComment(null); setEditCommentBody(""); qc.invalidateQueries({ queryKey: ["social-comments"] }); toast.success("Comment updated");
+  };
+  const delComment = async (id: string) => {
+    if (!window.confirm("Delete this comment and its replies?")) return;
+    await supabase.from("post_comments").delete().eq("parent_id", id);
+    const { error } = await supabase.from("post_comments").delete().eq("id", id);
+    if (error) return toast.error(error.message);
+    qc.invalidateQueries({ queryKey: ["social-comments"] }); toast.success("Comment deleted");
+  };
   const submitComment = async (postId: string, parentId: string | null) => { if (!session) return toast.error("Sign in to comment"); const text = parentId ? replyBody : commentBody; if (!text.trim()) return toast.error("Write something first"); await supabase.from("post_comments").insert({ post_id: postId, user_id: session.user.id, parent_id: parentId, body: text.trim(), author_name: myName }); const cpost = (posts || []).find((x: any) => x.id === postId); if (cpost) notify(cpost.user_id, myName + " commented on your ad", text.trim()); setCommentBody(""); setReplyBody(""); setReplyTo(null); qc.invalidateQueries({ queryKey: ["social-comments"] }); };
   return (
     <div className="mx-auto max-w-2xl px-4 pb-28 pt-8 md:pb-8">
@@ -205,12 +220,20 @@ function SocialPage() {
                   <Avatar name={cc.author_name} />
                   <div className="flex-1">
                     <p className="text-xs font-semibold">{cc.author_name} <span className="font-normal text-muted-foreground">{when(cc.created_at)}</span></p>
-                    <p className="mt-0.5 text-sm">{cc.body}</p>
-                    <button className="mt-0.5 text-xs font-semibold text-muted-foreground" onClick={() => setReplyTo(replyTo === cc.id ? null : cc.id)}>Reply</button>
+                    {editingComment === cc.id ? (<div className="mt-1 flex gap-2"><Input value={editCommentBody} onChange={(e) => setEditCommentBody(e.target.value)} /><Button size="sm" onClick={() => saveEditComment(cc.id)}>Save</Button><Button size="sm" variant="outline" onClick={() => setEditingComment(null)}>Cancel</Button></div>) : (<p className="mt-0.5 text-sm">{cc.body}</p>)}
+                    <div className="mt-0.5 flex gap-3">
+                      <button className="text-xs font-semibold text-muted-foreground" onClick={() => setReplyTo(replyTo === cc.id ? null : cc.id)}>Reply</button>
+                      {session && (cc.user_id === session.user.id || isAdm) ? (<button className="text-xs font-semibold text-accent-deep" onClick={() => startEditComment(cc)}>Edit</button>) : null}
+                      {session && (cc.user_id === session.user.id || isAdm) ? (<button className="text-xs font-semibold text-destructive" onClick={() => delComment(cc.id)}>Delete</button>) : null}
+                    </div>
                     {(commentsByPost[openComments] || []).filter((r: any) => r.parent_id === cc.id).map((r: any) => (
                       <div key={r.id} className="mt-2 flex items-start gap-2">
                         <Avatar name={r.author_name} small />
-                        <div className="flex-1"><p className="text-xs font-semibold">{r.author_name}</p><p className="text-sm">{r.body}</p></div>
+                        <div className="flex-1">
+                          <p className="text-xs font-semibold">{r.author_name}</p>
+                          {editingComment === r.id ? (<div className="mt-1 flex gap-2"><Input value={editCommentBody} onChange={(e) => setEditCommentBody(e.target.value)} /><Button size="sm" onClick={() => saveEditComment(r.id)}>Save</Button><Button size="sm" variant="outline" onClick={() => setEditingComment(null)}>Cancel</Button></div>) : (<p className="text-sm">{r.body}</p>)}
+                          {session && (r.user_id === session.user.id || isAdm) ? (<div className="flex gap-3"><button className="text-[11px] font-semibold text-accent-deep" onClick={() => startEditComment(r)}>Edit</button><button className="text-[11px] font-semibold text-destructive" onClick={() => delComment(r.id)}>Delete</button></div>) : null}
+                        </div>
                         <button onClick={() => toggleCommentLike(r.id)} className={"pt-0.5 " + (myCommentLikes[r.id] ? "text-red-500" : "text-muted-foreground")}><Heart className={"size-4 " + (myCommentLikes[r.id] ? "fill-red-500" : "")} /></button>
                       </div>
                     ))}

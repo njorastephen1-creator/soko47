@@ -161,6 +161,7 @@ function SocialPage() {
                 <div className="mt-1 flex flex-wrap gap-2">
                   <Button variant="outline" size="sm" onClick={() => { const url = window.prompt("Paste new image or video link (leave empty to remove)"); if (url !== null) setEditForm({ ...editForm, media_url: url }); }}>Change link</Button>
                   <ImageUpload value={editForm.media_url} onChange={(u) => setEditForm({ ...editForm, media_url: u })} />
+                  <VideoUpload value={editForm.media_url} onChange={(u) => setEditForm({ ...editForm, media_url: u })} />
                 </div>
                 {editForm.media_url ? (<div className="mt-2">{editingPost.kind === "video" ? <video src={editForm.media_url} controls className="max-h-48 rounded-xl" /> : <img src={editForm.media_url} alt="" className="max-h-48 rounded-xl" />}</div>) : null}
               </div>

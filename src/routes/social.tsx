@@ -193,7 +193,7 @@ function SocialPage() {
         </div>
       ) : null}
       {openComments ? (
-        <div className="fixed inset-0 z-50 bg-black/80" onClick={() => setOpenComments(null)}>
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px]" onClick={() => setOpenComments(null)}>
           <div className="absolute left-1/2 top-1/2 flex max-h-[82vh] w-[92%] max-w-md -translate-x-1/2 -translate-y-1/2 flex-col rounded-3xl bg-card" onClick={(e) => e.stopPropagation()}>
             <div className="relative flex items-center justify-center px-4 py-3">
               <p className="text-sm font-semibold">Comments</p>

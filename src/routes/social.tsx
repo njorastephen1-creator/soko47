@@ -54,6 +54,7 @@ function SocialPage() {
   const { data: mySaves } = useQuery({ queryKey: ["social-saves", session ? session.user.id : "anon"], enabled: !!session, queryFn: async () => { const { data } = await supabase.from("post_saves").select("post_id").eq("user_id", session!.user.id); return data || []; } });
   const { data: myFollows } = useQuery({ queryKey: ["social-follows", session ? session.user.id : "anon"], enabled: !!session, queryFn: async () => { const { data } = await supabase.from("post_follows").select("author_id").eq("follower_id", session!.user.id); return data || []; } });
   const { data: comments } = useQuery({ queryKey: ["social-comments"], refetchInterval: 20000, queryFn: async () => { const { data } = await supabase.from("post_comments").select("*").order("created_at", { ascending: true }); return data || []; } });
+  const { data: commentLikes } = useQuery({ queryKey: ["social-comment-likes"], refetchInterval: 20000, queryFn: async () => { const { data } = await supabase.from("post_comment_likes").select("comment_id, user_id"); return data || []; } });
   const socialActive = isAdm || !!(myProf && myProf.social_expires_at && new Date(myProf.social_expires_at).getTime() > Date.now());
   const myName = myProf && myProf.display_name ? myProf.display_name : (session ? session.user.email.split("@")[0] : "");
   const likesCount: any = {}; const myLikes: any = {};
@@ -62,6 +63,8 @@ function SocialPage() {
   const savedMap: any = {}; (mySaves || []).forEach((s: any) => { savedMap[s.post_id] = true; });
   const followSet: any = {}; (myFollows || []).forEach((f: any) => { followSet[f.author_id] = true; });
   const commentsByPost: any = {}; (comments || []).forEach((c: any) => { (commentsByPost[c.post_id] = commentsByPost[c.post_id] || []).push(c); });
+  const commentLikesCount: any = {}; const myCommentLikes: any = {};
+  (commentLikes || []).forEach((l: any) => { commentLikesCount[l.comment_id] = (commentLikesCount[l.comment_id] || 0) + 1; if (session && l.user_id === session.user.id) myCommentLikes[l.comment_id] = true; });
   const tagCounts: any = {}; (posts || []).forEach((p: any) => tagsOf(p).forEach((t: string) => { tagCounts[t] = (tagCounts[t] || 0) + 1; }));
   const popularTags = Object.keys(tagCounts).sort((a, b) => tagCounts[b] - tagCounts[a]).slice(0, 8);
   let feed = (posts || []).filter((p: any) => !p.expires_at || new Date(p.expires_at).getTime() > Date.now());
@@ -91,6 +94,7 @@ function SocialPage() {
   };
   const cancelEdit = () => { setEditingPost(null); setEditForm(null); };
   const delPost = async (p: any) => { if (!window.confirm("Delete your ad?")) return; await supabase.from("posts").delete().eq("id", p.id); qc.invalidateQueries(); toast.success("Ad deleted"); };
+  const toggleCommentLike = async (id: string) => { if (!session) return toast.error("Sign in to like"); if (myCommentLikes[id]) await supabase.from("post_comment_likes").delete().eq("comment_id", id).eq("user_id", session.user.id); else await supabase.from("post_comment_likes").insert({ comment_id: id, user_id: session.user.id }); qc.invalidateQueries({ queryKey: ["social-comment-likes"] }); };
   const submitComment = async (postId: string, parentId: string | null) => { if (!session) return toast.error("Sign in to comment"); const text = parentId ? replyBody : commentBody; if (!text.trim()) return toast.error("Write something first"); await supabase.from("post_comments").insert({ post_id: postId, user_id: session.user.id, parent_id: parentId, body: text.trim(), author_name: myName }); const cpost = (posts || []).find((x: any) => x.id === postId); if (cpost) notify(cpost.user_id, myName + " commented on your ad", text.trim()); setCommentBody(""); setReplyBody(""); setReplyTo(null); qc.invalidateQueries({ queryKey: ["social-comments"] }); };
   return (
     <div className="mx-auto max-w-2xl px-4 pb-28 pt-8 md:pb-8">
@@ -186,20 +190,38 @@ function SocialPage() {
       ) : null}
       {openComments ? (
         <div className="fixed inset-0 z-50 bg-black/80" onClick={() => setOpenComments(null)}>
-          <div className="absolute inset-x-0 bottom-0 mx-auto max-h-[70vh] max-w-2xl overflow-y-auto rounded-t-3xl bg-card p-4" onClick={(e) => e.stopPropagation()}>
-            <div className="mx-auto mb-2 h-1 w-10 rounded-full bg-border" />
-            <div className="flex items-center justify-between"><p className="text-center text-sm font-semibold">{(commentsByPost[openComments] || []).length} comments</p><button onClick={() => setOpenComments(null)} className="text-muted-foreground"><X className="size-5" /></button></div>
-            <div className="mt-3 space-y-2">
-              {(commentsByPost[openComments] || []).filter((c: any) => !c.parent_id).map((c: any) => (
-                <div key={c.id}>
-                  <p className="text-xs font-semibold">{c.author_name} <span className="font-normal text-muted-foreground">· {when(c.created_at)}</span></p>
-                  <p className="text-sm">{c.body}</p>
-                  <button className="text-xs font-semibold text-accent-deep" onClick={() => setReplyTo(replyTo === c.id ? null : c.id)}>Reply</button>
-                  {(commentsByPost[openComments] || []).filter((r: any) => r.parent_id === c.id).map((r: any) => (<div key={r.id} className="ml-4 mt-1"><p className="text-xs font-semibold">{r.author_name}</p><p className="text-sm">{r.body}</p></div>))}
-                  {replyTo === c.id ? (<div className="ml-4 mt-1 flex gap-2"><Input value={replyBody} onChange={(e) => setReplyBody(e.target.value)} placeholder="Reply..." /><Button size="sm" onClick={() => submitComment(openComments, c.id)}>Send</Button></div>) : null}
+          <div className="absolute inset-x-0 bottom-0 mx-auto flex max-h-[80vh] max-w-2xl flex-col rounded-t-3xl bg-card" onClick={(e) => e.stopPropagation()}>
+            <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-border" />
+            <div className="relative flex items-center justify-center px-4 py-3">
+              <p className="text-sm font-semibold">Comments ({(commentsByPost[openComments] || []).length})</p>
+              <button onClick={() => setOpenComments(null)} className="absolute right-3 text-muted-foreground"><X className="size-5" /></button>
+            </div>
+            <div className="flex-1 space-y-3 overflow-y-auto px-4 pb-3">
+              {(commentsByPost[openComments] || []).filter((cc: any) => !cc.parent_id).map((cc: any) => (
+                <div key={cc.id} className="flex items-start gap-2">
+                  <div className="flex-1">
+                    <p className="text-xs font-semibold">{cc.author_name} <span className="font-normal text-muted-foreground">· {when(cc.created_at)}</span></p>
+                    <p className="mt-0.5 text-sm">{cc.body}</p>
+                    <button className="mt-0.5 text-xs font-semibold text-accent-deep" onClick={() => setReplyTo(replyTo === cc.id ? null : cc.id)}>Reply</button>
+                    {(commentsByPost[openComments] || []).filter((r: any) => r.parent_id === cc.id).map((r: any) => (
+                      <div key={r.id} className="mt-1 flex items-start gap-2 rounded-xl bg-secondary/60 p-2">
+                        <div className="flex-1"><p className="text-xs font-semibold">{r.author_name}</p><p className="text-sm">{r.body}</p></div>
+                        <button onClick={() => toggleCommentLike(r.id)} className={"pt-0.5 " + (myCommentLikes[r.id] ? "text-red-500" : "text-muted-foreground")}><Heart className={"size-4 " + (myCommentLikes[r.id] ? "fill-red-500" : "")} /></button>
+                      </div>
+                    ))}
+                    {replyTo === cc.id ? (<div className="mt-1 flex gap-2"><Input value={replyBody} onChange={(e) => setReplyBody(e.target.value)} placeholder="Reply..." /><Button size="sm" onClick={() => submitComment(openComments, cc.id)}>Send</Button></div>) : null}
+                  </div>
+                  <button onClick={() => toggleCommentLike(cc.id)} className={"flex flex-col items-center gap-0.5 pt-1 " + (myCommentLikes[cc.id] ? "text-red-500" : "text-muted-foreground")}>
+                    <Heart className={"size-4 " + (myCommentLikes[cc.id] ? "fill-red-500" : "")} />
+                    <span className="text-[10px]">{commentLikesCount[cc.id] || 0}</span>
+                  </button>
                 </div>
               ))}
-              <div className="flex gap-2"><Input value={commentBody} onChange={(e) => setCommentBody(e.target.value)} placeholder="Add a comment..." /><Button onClick={() => submitComment(openComments, null)}>Post</Button></div>
+              {(commentsByPost[openComments] || []).length === 0 && <p className="py-6 text-center text-sm text-muted-foreground">Be the first to comment.</p>}
+            </div>
+            <div className="flex gap-2 border-t border-border p-3">
+              <Input value={commentBody} onChange={(e) => setCommentBody(e.target.value)} placeholder="Add a comment..." />
+              <Button onClick={() => submitComment(openComments, null)}>Post</Button>
             </div>
           </div>
         </div>

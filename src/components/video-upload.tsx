@@ -13,14 +13,14 @@ export function VideoUpload({ value, onChange }: { value: string; onChange: (u: 
   const [progress, setProgress] = useState(0);
   const ref = useRef<HTMLInputElement | null>(null);
   const finish = (url: string) => { onChange(url); setBusy(false); setProgress(100); toast.success("Video ready"); };
-  const fail = () => { setBusy(false); setProgress(0); toast.error("Upload failed. Try a shorter or compressed clip, or paste a link instead."); };
+  const fail = (err?: any) => { setBusy(false); setProgress(0); const raw = err && err.message ? err.message : err ? String(err) : ""; console.error("VIDEO UPLOAD ERROR:", raw); toast.error(raw ? "Upload failed: " + raw : "Upload failed. Try a shorter or compressed clip, or paste a link instead."); };
   const pick = async (file: File) => {
     if (file.size > MAX) return toast.error("This video is too large. Please choose a shorter or compressed clip.");
     setBusy(true); setProgress(0);
     const objectName = "vid-" + Date.now() + "-" + file.name.replace(/[^a-zA-Z0-9.]+/g, "-");
     if (file.size <= 45 * 1024 * 1024) {
       const { error } = await supabase.storage.from("videos").upload(objectName, file, { contentType: file.type || "video/mp4" });
-      if (error) { fail(); return; }
+      if (error) { fail(error); return; }
       const { data } = supabase.storage.from("videos").getPublicUrl(objectName);
       finish(data.publicUrl);
       return;
@@ -36,11 +36,11 @@ export function VideoUpload({ value, onChange }: { value: string; onChange: (u: 
         retryDelays: [0, 3000, 5000, 10000, 20000],
         metadata: { bucketName: "videos", objectName, contentType: file.type || "video/mp4", cacheControl: "3600" },
         chunkSize: 6 * 1024 * 1024,
-        onError: () => { if (wd) clearTimeout(wd); fail(); },
+        onError: (err: any) => { if (wd) clearTimeout(wd); fail(err); },
         onProgress: (b: number, t: number) => { started = true; setProgress(Math.round((b / t) * 100)); },
         onSuccess: () => { if (wd) clearTimeout(wd); finish(SUPABASE_URL + "/storage/v1/object/public/videos/" + objectName); },
       });
-      wd = setTimeout(() => { if (!started) { try { upload.abort(); } catch (e) {} fail(); } }, 25000);
+      wd = setTimeout(() => { if (!started) { try { upload.abort(); } catch (e) {} fail("no response from storage - check connection or size limit"); } }, 25000);
       upload.start();
     } catch (e) {
       console.error("video upload error", e);

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { isAdminEmail } from "@/lib/admin";
+import { useIsAdmin } from "@/lib/use-is-admin";
 import { useSession } from "@/lib/use-session";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,7 +37,9 @@ function Chips(props: any) {
 function AdminPage() {
   const { session } = useSession();
   const qc = useQueryClient();
-  const isAdm = isAdminEmail(session ? session.user.email : "");
+  const email = session ? session.user.email : undefined;
+  const isAdm = useIsAdmin(email);
+  const isOwner = isAdminEmail(email || "");
   const [tab, setTab] = useState("overview");
   const settings = useSettings();
   const [setForm, setSetForm] = useState<any>(null);
@@ -148,6 +151,7 @@ function AdminPage() {
     <div className="mx-auto max-w-6xl px-4 py-10">
       <h1 className="font-display text-3xl font-bold">Admin command center</h1>
       <p className="mt-1 text-sm text-muted-foreground">Full visibility and control. Every delete is confirmed and reversible from Trash.</p>
+      {isOwner ? (<div className="mt-4 rounded-2xl border border-border bg-card p-4"><h2 className="font-display text-lg font-bold">Manage admins</h2><p className="text-xs text-muted-foreground">Only you can see this. Other admins can use the dashboard but cannot add or remove admins, and your email is hidden from everyone.</p><div className="mt-3 flex gap-2"><Input placeholder="email@example.com" value={newAdmin} onChange={(e) => setNewAdmin(e.target.value)} /><Button onClick={addAdmin}>Add admin</Button></div><div className="mt-3 space-y-1">{(adminRows || []).filter((a: any) => a.email !== email).map((a: any) => (<div key={a.email} className="flex items-center justify-between rounded-lg border border-border bg-background px-3 py-2 text-sm"><div><p className="font-semibold">{a.email}</p><p className="text-xs text-muted-foreground">added {new Date(a.created_at).toLocaleDateString()} by {a.added_by || "owner"}</p></div><Button size="sm" variant="outline" className="text-destructive" onClick={() => removeAdmin(a.email)}>Remove</Button></div>))}</div></div>) : null}
       <div className="mt-4 flex flex-wrap gap-2">
         {tabs.map((t) => (<button key={t} onClick={() => setTab(t)} className={"rounded-full border px-4 py-1.5 text-sm capitalize " + (tab === t ? "border-accent bg-accent font-semibold text-foreground" : "border-border bg-card")}>{t}{t === "trash" && (trash || []).length > 0 ? " (" + (trash || []).length + ")" : ""}</button>))}
       </div>

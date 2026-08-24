@@ -320,7 +320,7 @@ function VendorDashboard() {
         <p className="mt-2 text-xs text-muted-foreground">Each shop has its OWN subscription, products, chats & payments. Tap a pill to switch - the whole app follows.</p>
       </div>
       <div id="add-product-form" className="mt-6 rounded-3xl border border-accent/40 bg-accent/10 p-6">
-        <h2 className="font-display text-xl font-bold">Add a product</h2>
+        <h2 className="font-display text-xl font-bold"><span id="add-product" className="block" />Add a product</h2>
         <div className="mt-3 grid gap-3 sm:grid-cols-2">
           <div><Label>Product name</Label><Input value={np.title} onChange={(e) => setNp({ ...np, title: e.target.value })} placeholder="e.g. Fresh tomatoes (kiondo)" /></div>
           <div><Label>Price (KSh)</Label><Input type="number" value={np.price} onChange={(e) => setNp({ ...np, price: e.target.value })} placeholder="250" /></div>

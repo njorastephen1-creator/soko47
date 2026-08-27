@@ -12,6 +12,12 @@ export default async function handler(req, res) {
 
   const base = process.env.SUPABASE_URL || "";
   const anon = process.env.SUPABASE_ANON_KEY || "";
+
+  if (req.query.debug === "1") {
+    const names = Object.keys(process.env).filter((k) => /supabase/i.test(k));
+    res.setHeader("Content-Type", "application/json");
+    return res.status(200).send(JSON.stringify({ hasUrl: !!base, hasAnon: !!anon, hasId: !!id, supabaseVars: names }));
+  }
   const productUrl = "https://soko47-kenya.vercel.app/product/" + id;
 
   if (!base || !anon || !id) {

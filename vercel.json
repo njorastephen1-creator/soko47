@@ -1,11 +1,12 @@
 {
-  "functions": {
-    "api/**/*.ts": {
-      "runtime": "@vercel/node@3.0.0"
-    }
-  },
   "rewrites": [
-    { "source": "/product/:id", "destination": "/api/og/:id" },
+    {
+      "source": "/product/:id",
+      "has": [
+        { "type": "header", "key": "user-agent", "value": ".*(WhatsApp|whatsapp|facebookexternalhit|Facebot|facebot|Twitterbot|twitterbot|LinkedInBot|linkedinbot|TelegramBot|telegrambot|Slackbot|slackbot|Discordbot|discordbot).*" }
+      ],
+      "destination": "/api/og/:id"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

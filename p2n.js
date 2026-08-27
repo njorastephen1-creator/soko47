@@ -1,4 +1,7 @@
-import { useRef, useState } from "react";
+import fs from 'fs';
+
+// 1) Rewrite video-upload cleanly: remove dead XHR, add auth + type validation + user isolation
+const vid = `import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/use-session";
@@ -30,3 +33,14 @@ export function VideoUpload({ value, onChange }: { value: string; onChange: (u: 
     </div>
   );
 }
+`;
+fs.writeFileSync('src/components/video-upload.tsx', vid);
+console.log('video-upload.tsx rewritten (auth + type check + user isolation, dead XHR removed)');
+
+// 2) Patch enrich: add type validation + user isolation to gallery + main video
+const ef = 'src/routes/_authenticated/enrich.$id.tsx';
+let e = fs.readFileSync(ef, 'utf8');
+e = e.split('    if (!file) return;\n    if (file.size > 48 * 1024 * 1024) return toast.error("Video too big - max 48MB");').join('    if (!file) return;\n    if (!file.type.startsWith("video/")) return toast.error("Choose a video file");\n    if (file.size > 48 * 1024 * 1024) return toast.error("Video too big - max 48MB");');
+e = e.split('      const path = "gal-" + Date.now() + "-" + file.name.replace(/[^a-zA-Z0-9.]+/g, "-");').join('      const path = (session ? session.user.id.slice(0, 8) : "anon") + "-gal-" + Date.now() + "-" + file.name.replace(/[^a-zA-Z0-9.]+/g, "-");');
+fs.writeFileSync(ef, e);
+console.log('enrich: type validation + user isolation added');

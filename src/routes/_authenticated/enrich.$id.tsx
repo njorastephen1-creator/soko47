@@ -31,10 +31,11 @@ function EnrichPage() {
   const pickGalleryVideo = async (ev: React.ChangeEvent<HTMLInputElement>) => {
     const file = ev.target.files && ev.target.files[0];
     if (!file) return;
+    if (!file.type.startsWith("video/")) return toast.error("Choose a video file");
     if (file.size > 48 * 1024 * 1024) return toast.error("Video too big - max 48MB");
     setUploading(true);
     try {
-      const path = "gal-" + Date.now() + "-" + file.name.replace(/[^a-zA-Z0-9.]+/g, "-");
+      const path = (session ? session.user.id.slice(0, 8) : "anon") + "-gal-" + Date.now() + "-" + file.name.replace(/[^a-zA-Z0-9.]+/g, "-");
       const { error } = await supabase.storage.from("videos").upload(path, file, { contentType: file.type });
       if (error) { toast.error(error.message); return; }
       const pub = supabase.storage.from("videos").getPublicUrl(path).data.publicUrl;
@@ -46,6 +47,7 @@ function EnrichPage() {
   const pickVideo = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
+    if (!file.type.startsWith("video/")) return toast.error("Choose a video file");
     if (file.size > 48 * 1024 * 1024) return toast.error("Video too big - max 48MB");
     setUploading(true);
     try {

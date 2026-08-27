@@ -1,4 +1,6 @@
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import fs from 'fs';
+const f = 'api/r2-presign.js';
+let c = `import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { createClient } from "@supabase/supabase-js";
 
@@ -72,11 +74,11 @@ export default async function handler(req: any, res: any) {
   // Build key with user isolation
   const prefix = media_type === "gallery" ? "gal" : (type.startsWith("video/") ? "vid" : "img");
   const safeName = String(name || "file").replace(/[^a-zA-Z0-9._-]+/g, "-");
-  const key = `${prefix}-${user.id.slice(0, 8)}-${Date.now()}-${safeName}`;
+  const key = \`\${prefix}-\${user.id.slice(0, 8)}-\${Date.now()}-\${safeName}\`;
 
   const client = new S3Client({
     region: "auto",
-    endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+    endpoint: \`https://\${R2_ACCOUNT_ID}.r2.cloudflarestorage.com\`,
     credentials: { accessKeyId: R2_ACCESS_KEY_ID, secretAccessKey: R2_SECRET_ACCESS_KEY },
   });
 
@@ -88,6 +90,10 @@ export default async function handler(req: any, res: any) {
 
   res.status(200).json({ 
     uploadUrl, 
-    publicUrl: R2_PUBLIC_URL.replace(/\/$/, "") + "/" + key 
+    publicUrl: R2_PUBLIC_URL.replace(/\\/$/, "") + "/" + key 
   });
 }
+`;
+
+fs.writeFileSync(f, c);
+console.log('r2-presign.js: secured with auth, rate limiting, MIME validation, user isolation');

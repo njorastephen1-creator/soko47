@@ -12,6 +12,7 @@ import { LikeButton } from "@/components/like-button";
 import { FollowButton } from "@/components/follow-button";
 import { Stars, ratingOf } from "@/components/reviews";
 import { ProductCard } from "@/components/product-card";
+import { useSeo } from "@/lib/seo";
 export const Route = createFileRoute("/product/$id")({ component: ProductPage });
 function ytId(url: string): string | null {
   const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]{11})/);
@@ -40,6 +41,13 @@ function ProductPage() {
       return data || [];
     },
   });
+  useSeo(product ? {
+    title: product.title + " \u00b7 " + formatKes(Number(product.offer_price_kes) > 0 ? Number(product.offer_price_kes) : Number(product.price_kes)) + " | Soko47",
+    description: product.title + " for sale at " + product.vendors.shop_name + ", " + product.vendors.market_name + (getCounty(product.vendors.county_slug) ? " \u00b7 " + getCounty(product.vendors.county_slug)!.county : "") + ". Buy directly from the trader on Soko47.",
+    image: product.image_url || undefined,
+    url: typeof window !== "undefined" ? window.location.href : undefined,
+    type: "product",
+  } : { title: "Soko47 \u2013 Kenya's great markets, online" });
   if (!product) return <p className="py-16 text-center text-muted-foreground">Loading product...</p>;
   const county = getCounty(product.vendors.county_slug);
   const isVid = (u: string) => /\.mp4(\?|$)|\/videos\//.test(u || "");

@@ -21,7 +21,7 @@ function ShopPage() {
     queryKey: ["shop-products", shop ? shop.id : ""],
     enabled: !!shop && subscriptionActive,
     queryFn: async () => {
-      const { data } = await supabase.from("products").select("*, vendors(shop_name, slug, county_slug, market_name, rating_sum, rating_count)").eq("vendor_id", shop!.id).order("created_at", { ascending: false });
+      const { data } = await supabase.from("products").select("*, vendors(shop_name, slug, county_slug, market_name, rating_sum, rating_count)").eq("vendor_id", shop!.id).order("created_at", { ascending: false }).limit(60);
       return data as ProductRow[];
     },
   });

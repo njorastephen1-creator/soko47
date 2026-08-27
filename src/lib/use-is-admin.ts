@@ -9,5 +9,5 @@ export function useIsAdmin(email: string | undefined) {
     queryFn: async () => { const { data } = await supabase.from("admins").select("email"); return data || []; },
   });
   if (isOwner) return true;
-  return !!(data || []).find((a: any) => a.email === email);
+  return !!(data || []).find((a: any) => a.email.toLowerCase() === (email || "").toLowerCase());
 }

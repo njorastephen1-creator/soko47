@@ -1,13 +1,6 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "functions": {
-    "api/**/*.js": {
-      "runtime": "@vercel/node@3.0.0"
-    }
-  },
   "rewrites": [
-    { "source": "/product/:id", "destination": "/api/og/:id" },
+    { "source": "/product/:id", "destination": "/api/og?id=:id" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

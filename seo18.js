@@ -1,4 +1,6 @@
-const esc = (s) => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+import fs from 'fs';
+
+fs.writeFileSync('api/og.js', `const esc = (s) => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 export default async function handler(req, res) {
   try {
@@ -37,7 +39,7 @@ export default async function handler(req, res) {
     }
 
     const price = Number(p.offer_price_kes) > 0 ? Number(p.offer_price_kes) : Number(p.price_kes);
-    const title = esc(p.title + " \u00b7 KSh " + price.toLocaleString() + " | Soko47");
+    const title = esc(p.title + " \\u00b7 KSh " + price.toLocaleString() + " | Soko47");
     const v = p.vendors || {};
     const description = esc(p.title + " for sale at " + (v.shop_name || "a trader") + " in " + (v.market_name || "") + ". Buy directly from the trader on Soko47.");
     const image = p.image_url || "";
@@ -62,3 +64,5 @@ export default async function handler(req, res) {
     return res.status(500).send(JSON.stringify({ error: e.message, stack: e.stack }));
   }
 }
+`);
+console.log('api/og.js rewritten with try/catch + improved debug');

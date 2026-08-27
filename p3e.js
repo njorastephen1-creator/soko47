@@ -1,6 +1,6 @@
 import fs from 'fs';
 
-// Restore the simple client-side owner check (it works, the email being visible is not a security risk)
+// Restore the simple client-side owner check
 const adminTs = `export const ADMIN_EMAIL = "njorastephen1@gmail.com";
 export const isAdminEmail = (email?: string | null) => email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
 `;
@@ -32,10 +32,10 @@ if (!fixed.includes('import { isAdminEmail } from "@/lib/admin"')) {
   fixed = fixed.split('import { useIsAdmin }').join('import { isAdminEmail } from "@/lib/admin";\nimport { useIsAdmin }');
 }
 
-// Replace any complex owner check with the simple one
+// Replace the complex owners check with the simple one
 fixed = fixed.replace(/const \{ data: ownerCheck \} = useQuery\([^)]+\);\nconst isOwner = ownerCheck\?\.isOwner \|\| false;/, 'const isOwner = isAdminEmail(email || "");');
 
-// Make sure isOwner is derived
+// Make sure isOwner is derived if not already there
 if (!fixed.includes('const isOwner = isAdminEmail')) {
   fixed = fixed.split('const isAdm = useIsAdmin(email);').join('const isAdm = useIsAdmin(email);\nconst isOwner = isAdminEmail(email || "");');
 }

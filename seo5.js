@@ -1,4 +1,5 @@
-{
+import fs from 'fs';
+fs.writeFileSync('vercel.json', `{
   "functions": {
     "api/**/*.ts": {
       "runtime": "@vercel/node@3.0.0"
@@ -9,3 +10,5 @@
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
+`);
+console.log('vercel.json updated');

@@ -1,4 +1,6 @@
-{
+import fs from 'fs';
+
+fs.writeFileSync('vercel.json', `{
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "functions": {
@@ -11,3 +13,5 @@
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
+`);
+console.log('vercel.json updated with functions config');

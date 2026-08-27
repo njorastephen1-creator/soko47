@@ -23,6 +23,7 @@ function ProductPage() {
   const [qty, setQty] = useState(1);
   const [img, setImg] = useState(0);
   const [showVideo, setShowVideo] = useState(false);
+  const [playVid, setPlayVid] = useState<string | null>(null);
   const [showDesc, setShowDesc] = useState(false);
   const { data: product } = useQuery({
     queryKey: ["product", id],
@@ -64,18 +65,24 @@ function ProductPage() {
       <div className="mt-4 grid gap-8 lg:grid-cols-2">
         <div>
           <div className="relative overflow-hidden rounded-3xl border border-border bg-card">
-            {gallery[img] ? (isVid(gallery[img]) ? <video src={gallery[img]} controls playsInline className="aspect-[4/3] w-full bg-black object-contain" /> : <img src={gallery[img]} alt={product.title} className="aspect-[4/3] w-full object-cover" />) : <div className="flex aspect-[4/3] items-center justify-center text-muted-foreground"><ShoppingBasket className="size-16" /></div>}
+            {(() => { const m = gallery[img] && !isVid(gallery[img]) ? gallery[img] : (product.image_url || gallery.find((x: string) => !isVid(x)) || ""); return m ? <img src={m} alt={product.title} className="aspect-[4/3] w-full object-cover" /> : <div className="flex aspect-[4/3] items-center justify-center text-muted-foreground"><ShoppingBasket className="size-16" /></div>; })()}
             <LikeButton productId={product.id} likes={Number(product.likes_count || 0)} className="absolute right-3 top-3" />
           </div>
           {gallery.length > 1 && (
             <div className="mt-3 flex gap-2 overflow-x-auto">
               {gallery.map((g, i) => (
-                <button key={i} onClick={() => setImg(i)} className={"size-16 shrink-0 overflow-hidden rounded-lg border-2 " + (i === img ? "border-accent" : "border-border")}>
+                <button key={i} onClick={() => (isVid(g) ? setPlayVid(g) : setImg(i))} className={"size-16 shrink-0 overflow-hidden rounded-lg border-2 " + (i === img ? "border-accent" : "border-border")}>
                   {isVid(g) ? (<span className="relative flex size-full items-center justify-center bg-black"><video src={g} muted playsInline preload="metadata" className="size-full object-cover opacity-60" /><Play className="absolute size-5 text-white" /></span>) : (<img src={g} alt="" className="size-full object-cover" />)}
                 </button>
               ))}
             </div>
           )}
+          {playVid ? (
+            <div className="mt-3 w-full max-w-[280px] overflow-hidden rounded-xl border border-border bg-black">
+              <video src={playVid} controls autoPlay playsInline className="w-full" />
+              <button onClick={() => setPlayVid(null)} className="w-full bg-card px-2 py-1 text-[11px] font-semibold text-muted-foreground">Close video</button>
+            </div>
+          ) : null}
         </div>
         <div>
           <div className="flex flex-wrap gap-2 text-xs">

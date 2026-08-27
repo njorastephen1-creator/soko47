@@ -71,7 +71,7 @@ function ProductPage() {
             <div className="mt-3 flex gap-2 overflow-x-auto">
               {gallery.map((g, i) => (
                 <button key={i} onClick={() => setImg(i)} className={"size-16 shrink-0 overflow-hidden rounded-lg border-2 " + (i === img ? "border-accent" : "border-border")}>
-                  {isVid(g) ? <video src={g} muted playsInline preload="metadata" className="size-full object-cover" /> : <img src={g} alt="" className="size-full object-cover" />}
+                  {isVid(g) ? (<span className="relative flex size-full items-center justify-center bg-black"><video src={g} muted playsInline preload="metadata" className="size-full object-cover opacity-60" /><Play className="absolute size-5 text-white" /></span>) : (<img src={g} alt="" className="size-full object-cover" />)}
                 </button>
               ))}
             </div>

@@ -4,7 +4,7 @@ import { Ban, Bike, CheckCircle2, Megaphone, MessageCircle, Package, ReceiptText
 import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { isAdminEmail } from "@/lib/admin";
+
 import { useIsAdmin } from "@/lib/use-is-admin";
 import { useSession } from "@/lib/use-session";
 import { Button } from "@/components/ui/button";
@@ -39,7 +39,8 @@ function AdminPage() {
   const qc = useQueryClient();
   const email = session ? session.user.email : undefined;
   const isAdm = useIsAdmin(email);
-  const isOwner = isAdminEmail(email || "");
+  const { data: ownerCheck } = useQuery({ queryKey: ["owner-check", email], enabled: !!email, queryFn: async () => { const { data: { session } } = await supabase.auth.getSession(); if (!session) return { isOwner: false }; const r = await fetch("/api/check-owner", { method: "POST", headers: { Authorization: "Bearer " + session.access_token } }); return await r.json(); } });
+const isOwner = ownerCheck?.isOwner || false;
   const { data: adminRows, refetch: refetchAdmins } = useQuery({ queryKey: ["admins-list-q"], enabled: isOwner, queryFn: async () => { const { data } = await supabase.from("admins").select("email, added_by, created_at").order("created_at", { ascending: false }); return data || []; } });
   const [newAdmin, setNewAdmin] = useState("");
   const addAdmin = async () => { const e = newAdmin.trim().toLowerCase(); if (!e || !e.includes("@")) return toast.error("Enter a valid email"); const { error } = await supabase.from("admins").insert({ email: e, added_by: email }); if (error) return toast.error(error.message); setNewAdmin(""); refetchAdmins(); toast.success(e + " is now an admin"); };

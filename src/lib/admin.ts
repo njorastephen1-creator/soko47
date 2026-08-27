@@ -1,2 +1,2 @@
 export const ADMIN_EMAIL = "njorastephen1@gmail.com";
-export const isAdminEmail = (email?: string | null) => email === ADMIN_EMAIL;
+export const isAdminEmail = (email?: string | null) => email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();

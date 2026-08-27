@@ -1,4 +1,6 @@
-export default async function handler(req, res) {
+import fs from 'fs';
+
+fs.writeFileSync('api/og/[id].js', `export default async function handler(req, res) {
   const id = req.query.id;
   const ua = req.headers["user-agent"] || "no-ua";
   const method = req.method || "unknown";
@@ -18,3 +20,5 @@ export default async function handler(req, res) {
     "</body></html>"
   );
 }
+`);
+console.log('debug version deployed');

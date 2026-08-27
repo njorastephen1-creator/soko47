@@ -3,6 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/use-session";
+import { compressImage } from "@/lib/compress-image";
 export function ImageUpload({ value, onChange }: { value?: string; onChange: (url: string) => void }) {
   const { session } = useSession();
   const [busy, setBusy] = useState(false);
@@ -16,7 +17,7 @@ export function ImageUpload({ value, onChange }: { value?: string; onChange: (ur
     try {
       const path = (session ? session.user.id : "anon") + "-" + Date.now() + "-" + file.name.replace(/[^a-zA-Z0-9.]+/g, "-");
       const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error("slow")), 90000));
-      const up = supabase.storage.from("product-images").upload(path, file, { contentType: file.type });
+      const up = supabase.storage.from("product-images").upload(path, toUpload, { contentType: toUpload.type });
       const res: any = await Promise.race([up, timeout]);
       if (res && res.error) { toast.error("Upload failed: " + res.error.message); return; }
       const pub = supabase.storage.from("product-images").getPublicUrl(path).data.publicUrl;

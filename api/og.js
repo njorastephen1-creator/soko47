@@ -6,8 +6,8 @@ export default async function handler(req, res) {
     const ua = (req.headers["user-agent"] || "").toLowerCase();
     const isBot = /whatsapp|facebookexternalhit|facebot|twitterbot|linkedinbot|telegrambot|slackbot|discordbot|googlebot|bingbot|yandex|baiduspider/.test(ua);
 
-    const base = process.env.SUPABASE_URL || "";
-    const anon = process.env.SUPABASE_ANON_KEY || "";
+    const base = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "";
+    const anon = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY || "";
 
     if (req.query.debug === "1") {
       const names = Object.keys(process.env).filter((k) => /supabase/i.test(k));

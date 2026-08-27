@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { pickVendor } from "@/lib/my-vendor";
 import { useSession } from "@/lib/use-session";
 export function ChatFab() {
   const { session } = useSession();
@@ -17,7 +18,7 @@ export function ChatFab() {
     queryKey: ["fab-vendor", session ? session.user.id : "anon"],
     enabled: !!session,
     queryFn: async () => {
-      const { data } = await supabase.from("vendors").select("id, user_id").eq("user_id", session!.user.id).maybeSingle();
+      const data = await pickVendor(session!.user.id);
       return data || null;
     },
   });

@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell, ChevronDown, Home, MapPin, Menu, Search, ShoppingBasket, ShoppingCart, Store, User, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { pickVendor } from "@/lib/my-vendor";
 import { CATEGORIES, COUNTIES, getCounty } from "@/data/markets";
 import { useCart } from "@/lib/cart";
 import { useSession } from "@/lib/use-session";
@@ -91,7 +92,7 @@ export function SiteHeader() {
     queryKey: ["my-vendor", session ? session.user.id : "anon"],
     enabled: !!session,
     queryFn: async () => {
-      const { data } = await supabase.from("vendors").select("id, slug").eq("user_id", session!.user.id).maybeSingle();
+      const data = await pickVendor(session!.user.id);
       return data || null;
     },
   });

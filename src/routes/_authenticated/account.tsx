@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { pickVendor } from "@/lib/my-vendor";
 import { Package, ShoppingBag, Store, ClipboardList, Settings, CreditCard, PlusCircle, TrendingUp, LogOut, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatKes } from "@/lib/cart";
@@ -12,7 +13,7 @@ function AccountHome() {
   const { data: vendor } = useQuery({
     queryKey: ["my-vendor", user.id],
     queryFn: async () => {
-      const { data } = await supabase.from("vendors").select("*").eq("user_id", user.id).maybeSingle();
+      const data = await pickVendor(user.id);
       return data;
     },
   });

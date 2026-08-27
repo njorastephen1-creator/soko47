@@ -5,6 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
 import { supabase } from "@/integrations/supabase/client";
+import { pickVendor } from "@/lib/my-vendor";
 import { useSession } from "@/lib/use-session";
 import { formatKes } from "@/lib/cart";
 import { Button } from "@/components/ui/button";
@@ -35,7 +36,7 @@ function PosPage() {
     queryKey: ["my-vendor-pos", session ? session.user.id : "anon"],
     enabled: !!session,
     queryFn: async () => {
-      const { data } = await supabase.from("vendors").select("*").eq("user_id", session!.user.id).maybeSingle();
+      const data = await pickVendor(session!.user.id);
       return data || null;
     },
   });

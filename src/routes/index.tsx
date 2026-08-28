@@ -51,6 +51,13 @@ function LiveAds() {
   );
 }
 function Home() {
+  const { data: trending } = useQuery({
+    queryKey: ["trending"],
+    queryFn: async () => {
+      const { data } = await supabase.from("products").select("*, vendors!inner(shop_name, slug, county_slug, market_name, status, rating_sum, rating_count)").eq("vendors.status", "active").gt("likes_count", 0).order("likes_count", { ascending: false }).order("created_at", { ascending: false }).limit(10);
+      return data as ProductRow[];
+    },
+  });
   const { data: fresh } = useQuery({
     queryKey: ["fresh"],
     queryFn: async () => {
@@ -84,6 +91,20 @@ function Home() {
           </div>
         </div>
       </section>
+      {(trending || []).length > 0 && (
+        <section className="mx-auto max-w-7xl px-4 pt-12">
+          <div className="flex items-center justify-between">
+            <h2 className="font-display text-2xl font-bold">🔥 Trending this week</h2>
+            <Link to="/browse" className="text-xs font-medium text-accent-deep hover:underline">View all</Link>
+          </div>
+          <p className="mt-1 text-sm text-muted-foreground">What Kenya is liking right now</p>
+          <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
+            {(trending || []).map((p) => (
+              <div key={p.id} className="w-40 shrink-0 sm:w-48"><ProductCard product={p} /></div>
+            ))}
+          </div>
+        </section>
+      )}
       <section className="mx-auto max-w-7xl px-4 py-4">
         <h2 className="font-display text-2xl font-bold">Fresh listings</h2>
         {CATEGORIES.filter((c) => (fresh || []).some((p) => p.category_slug === c.slug)).map((c) => (

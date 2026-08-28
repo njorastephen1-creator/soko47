@@ -9,30 +9,6 @@ export default async function handler(req, res) {
   const anon = process.env.SUPABASE_ANON_KEY || "sb_publishable_dO6jBGRsrSR-1B5ZABelUg_qObUlWGa";
   const productUrl = "https://soko47-kenya.vercel.app/product/" + id;
 
-  // Debug mode: return raw fetch result
-  if (req.query.debug === "1") {
-    const q = base + "/rest/v1/products?id=eq." + encodeURIComponent(id) + "&select=title,price_kes,offer_price_kes,image_url,vendors(shop_name,market_name,county_slug)";
-    try {
-      const r = await fetch(q, { headers: { apikey: anon, Authorization: "Bearer " + anon } });
-      const rows = await r.json();
-      res.setHeader("Content-Type", "application/json");
-      return res.status(200).send(JSON.stringify({ 
-        query: q, 
-        rows: rows, 
-        error: rows.error || null,
-        isBot: isBot 
-      }));
-    } catch (e) {
-      res.setHeader("Content-Type", "application/json");
-      return res.status(500).send(JSON.stringify({ error: e.message }));
-    }
-  }
-
-  if (!isBot) {
-    res.setHeader("Location", "/");
-    return res.status(302).end();
-  }
-
   if (!base || !anon || !id) {
     res.setHeader("Location", productUrl);
     return res.status(302).end();

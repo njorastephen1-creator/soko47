@@ -14,7 +14,9 @@ export default async function handler(req, res) {
     return res.status(200).send(JSON.stringify({
       hasUrl: !!(process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL),
       hasAnon: !!(process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY),
-      id: req.query.id || null,
+      baseValue: base,
+      anonValue: anon,
+      idValue: id,
       ua: req.headers["user-agent"] || "no-ua",
       isBot: /whatsapp|facebookexternalhit|facebot|twitterbot|linkedinbot|telegrambot|slackbot|discordbot|googlebot|bingbot|yandex|baiduspider/.test((req.headers["user-agent"] || "").toLowerCase())
     }));

@@ -10,6 +10,14 @@ export default async function handler(req, res) {
     const anon = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY || "";
 
     if (req.query.debug === "1") {
+    res.setHeader("Content-Type", "application/json");
+    return res.status(200).send(JSON.stringify({
+      hasUrl: !!(process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL),
+      hasAnon: !!(process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY),
+      id: req.query.id || null,
+      ua: req.headers["user-agent"] || "no-ua",
+      isBot: /whatsapp|facebookexternalhit|facebot|twitterbot|linkedinbot|telegrambot|slackbot|discordbot|googlebot|bingbot|yandex|baiduspider/.test((req.headers["user-agent"] || "").toLowerCase())
+    }));
       const names = Object.keys(process.env).filter((k) => /supabase/i.test(k));
       res.setHeader("Content-Type", "application/json");
       return res.status(200).send(JSON.stringify({ hasUrl: !!base, hasAnon: !!anon, hasId: !!id, isBot: isBot, supabaseVars: names }));

@@ -20,9 +20,9 @@ import { Stars, ratingOf } from "@/components/reviews";
 const SERVICE_CATS = ["services","repair","kinyozi","salon","laundry","fundi","carwash","boda","matatu","mpesaagent","water","cyber","ecitizen","photo","clearing","logistics"];
 function unitOptions(cat: string): string[] {
   if (cat === "houses") return ["unit", "room", "1/8 acre", "1/4 acre", "acre", "m²"];
-  if (cat === "cars") return ["unit"];
+  if (cat === "cars") return ["unit", "piece"];
   if (SERVICE_CATS.includes(cat)) return ["job", "visit", "hour", "day"];
-  return ["piece", "kg", "kiondo", "crate", "dozen", "bag"];
+  return ["piece", "kg", "kiondo", "crate", "dozen", "bag", "sack", "bundle", "bunch", "litre", "bottle", "packet", "box", "tin", "jerrican", "tray"];
 }
 export const Route = createFileRoute("/_authenticated/vendor")({ component: VendorDashboard });
 function VendorDashboard() {
@@ -344,6 +344,12 @@ function VendorDashboard() {
             <div className="mt-1 flex flex-wrap gap-2">
               {unitOptions(np.category).map((u) => (<button key={u} type="button" onClick={() => setNp({ ...np, unit: u })} className={"rounded-full px-3 py-1.5 text-xs font-semibold " + (np.unit === u ? "bg-primary text-primary-foreground" : "bg-secondary")}>{u}</button>))}
             </div>
+            <Input
+              value={unitOptions(np.category).includes(np.unit) ? "" : np.unit}
+              onChange={(e) => setNp({ ...np, unit: e.target.value })}
+              placeholder="Or type custom unit (e.g. wheelbarrow, meter, bucket)"
+              className="mt-2"
+            />
           </div>
           <div className="sm:col-span-2"><Label>Category</Label>
             <div className="mt-1 flex flex-wrap gap-2">

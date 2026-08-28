@@ -59,19 +59,21 @@ function ShopPage() {
         </div>
       )}
       {shop.status !== "blocked" && subscriptionActive && (
-        <div className="mt-8 grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-5">
-          {(products || []).map((p) => (<ProductCard key={p.id} product={p} />))}
-        </div>
-        {!!products && products.length === page * 60 && (
-          <div className="mt-8 text-center">
-            <button
-              onClick={() => setPage((p) => p + 1)}
-              className="rounded-full border border-accent bg-accent px-8 py-3 font-semibold text-foreground hover:bg-accent-deep"
-            >
-              Load more
-            </button>
+        <>
+          <div className="mt-8 grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-5">
+            {(products || []).map((p) => (<ProductCard key={p.id} product={p} />))}
           </div>
-        )}
+          {!!products && products.length === page * 60 && (
+            <div className="mt-8 text-center">
+              <button
+                onClick={() => setPage((p) => p + 1)}
+                className="rounded-full border border-accent bg-accent px-8 py-3 font-semibold text-foreground hover:bg-accent-deep"
+              >
+                Load more
+              </button>
+            </div>
+          )}
+        </>
       )}
       <ReviewsSection vendor={shop} />
     </div>

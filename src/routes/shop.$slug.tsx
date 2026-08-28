@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { BadgeCheck, MessageCircle, Phone, Store } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +10,8 @@ import { ProductCard, type ProductRow } from "@/components/product-card";
 export const Route = createFileRoute("/shop/$slug")({ component: ShopPage });
 function ShopPage() {
   const { slug } = Route.useParams();
+  const [page, setPage] = useState(1);
+  useEffect(() => { setPage(1); }, [shop ? shop.id : ""]);
   const { data: shop } = useQuery({
     queryKey: ["shop", slug],
     queryFn: async () => {
@@ -18,10 +21,10 @@ function ShopPage() {
   });
   const subscriptionActive = shop ? shop.status === "active" && (!shop.subscription_expires_at || new Date(shop.subscription_expires_at).getTime() > Date.now()) : false;
   const { data: products } = useQuery({
-    queryKey: ["shop-products", shop ? shop.id : ""],
+    queryKey: ["shop-products", shop ? shop.id : "", page],
     enabled: !!shop && subscriptionActive,
     queryFn: async () => {
-      const { data } = await supabase.from("products").select("*, vendors(shop_name, slug, county_slug, market_name, rating_sum, rating_count)").eq("vendor_id", shop!.id).order("created_at", { ascending: false }).limit(60);
+      const { data } = await supabase.from("products").select("*, vendors(shop_name, slug, county_slug, market_name, rating_sum, rating_count)").eq("vendor_id", shop!.id).order("created_at", { ascending: false }).limit(page * 60);
       return data as ProductRow[];
     },
   });
@@ -59,6 +62,16 @@ function ShopPage() {
         <div className="mt-8 grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-5">
           {(products || []).map((p) => (<ProductCard key={p.id} product={p} />))}
         </div>
+        {!!products && products.length === page * 60 && (
+          <div className="mt-8 text-center">
+            <button
+              onClick={() => setPage((p) => p + 1)}
+              className="rounded-full border border-accent bg-accent px-8 py-3 font-semibold text-foreground hover:bg-accent-deep"
+            >
+              Load more
+            </button>
+          </div>
+        )}
       )}
       <ReviewsSection vendor={shop} />
     </div>

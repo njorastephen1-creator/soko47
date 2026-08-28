@@ -1,4 +1,12 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import fs from 'fs';
+
+// Detect ProductCard's prop name to be safe
+const pc = fs.readFileSync('src/components/product-card.tsx', 'utf8');
+const m = pc.match(/ProductCard\s*\(\s*\{\s*([a-zA-Z]+)/);
+const prop = m ? m[1] : 'product';
+console.log('ProductCard prop name:', prop);
+
+const content = `import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { CATEGORIES, COUNTIES } from "@/data/markets";
@@ -71,7 +79,7 @@ function BrowsePage() {
       </select>
       <div className="mt-8 grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-5">
         {(products || []).map((p) => (
-          <ProductCard key={p.id} product={p} />
+          <ProductCard key={p.id} ${prop}={p} />
         ))}
       </div>
       {hasMore && (
@@ -89,3 +97,7 @@ function BrowsePage() {
     </div>
   );
 }
+`;
+
+fs.writeFileSync('src/routes/browse.tsx', content);
+console.log('browse.tsx fixed (v5-safe, no onSuccess)');

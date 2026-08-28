@@ -1,4 +1,6 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import fs from 'fs';
+
+const browseContent = `import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { CATEGORIES, COUNTIES } from "@/data/markets";
@@ -99,3 +101,7 @@ function BrowsePage() {
     </div>
   );
 }
+`;
+
+fs.writeFileSync('src/routes/browse.tsx', browseContent);
+console.log('browse.tsx updated with Load more pagination + product rendering');

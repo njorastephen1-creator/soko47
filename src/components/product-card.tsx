@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { MapPin, Package, Plus, Star } from "lucide-react";
 import { toast } from "sonner";
@@ -17,6 +18,20 @@ export type ProductRow = {
   vendor_id: string;
   vendors: { shop_name: string; slug: string; county_slug: string; market_name: string } | null;
 };
+
+function LazyImage({ src, alt }: { src: string; alt: string }) {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <img
+      src={src}
+      alt={alt}
+      loading="lazy"
+      onLoad={() => setLoaded(true)}
+      className={`size-full object-cover transition-all duration-300 ${loaded ? "opacity-100 group-hover:scale-105" : "opacity-0"}`}
+    />
+  );
+}
+
 export function ProductCard({ product }: { product: ProductRow }) {
   const add = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -28,7 +43,7 @@ export function ProductCard({ product }: { product: ProductRow }) {
       <LikeButton productId={product.id} likes={Number(product.likes_count || 0)} className="absolute right-1 top-1 z-10 px-1.5 py-0.5 text-[10px]" />
       <Link to="/product/$id" params={{ id: product.id }} className="flex flex-1 flex-col">
         <div className="aspect-[4/3] w-full overflow-hidden bg-secondary">
-          {product.image_url ? <img src={product.image_url} alt={product.title} className="size-full object-cover transition-transform duration-300 group-hover:scale-105" /> : <Package className="m-auto size-8 text-muted-foreground" />}
+          {product.image_url ? <LazyImage src={product.image_url} alt={product.title} /> : <Package className="m-auto size-8 text-muted-foreground" />}
         </div>
         <div className="flex flex-1 flex-col p-1.5">
           <p className="font-display text-sm font-extrabold text-accent-deep">{(Number(product.offer_price_kes) > 0 ? <span className="whitespace-nowrap"><s className="mr-1 opacity-60">{formatKes(Number(product.price_kes))}</s><span className="font-bold text-accent-deep">{formatKes(Number(product.offer_price_kes))}</span></span> : formatKes(Number(product.price_kes)))}</p>

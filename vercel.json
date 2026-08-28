@@ -1,7 +1,9 @@
 {
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/product/:id", "destination": "/api/og?id=:id" },
+    { "source": "/product/:id", "destination": "/api/og?type=product&id=:id" },
+    { "source": "/shop/:slug", "destination": "/api/og?type=shop&slug=:slug" },
+    { "source": "/markets/:county", "destination": "/api/og?type=county&county=:county" },
     { "source": "/((?!api).*)", "destination": "/index.html" }
   ]
 }

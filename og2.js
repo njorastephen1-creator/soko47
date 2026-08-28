@@ -1,4 +1,6 @@
-const esc = (s) => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+import fs from 'fs';
+
+fs.writeFileSync('api/og.js', `const esc = (s) => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 const SITE = "https://soko47-kenya.vercel.app";
 const BASE = "https://khonaidacpdeyptxenkl.supabase.co";
@@ -28,7 +30,7 @@ function ogHtml(title, description, image, url) {
 }
 
 function titleCase(s) {
-  return String(s || "").replace(/-/g, " ").replace(/\b\w/g, function (m) { return m.toUpperCase(); });
+  return String(s || "").replace(/-/g, " ").replace(/\\b\\w/g, function (m) { return m.toUpperCase(); });
 }
 
 export default async function handler(req, res) {
@@ -86,7 +88,7 @@ export default async function handler(req, res) {
     if (!prod) { res.setHeader("Location", SITE + "/product/" + id); return res.status(302).end(); }
     const price = Number(prod.offer_price_kes) > 0 ? Number(prod.offer_price_kes) : Number(prod.price_kes);
     const v = prod.vendors || {};
-    const title = esc(prod.title + " \u00b7 KSh " + price.toLocaleString() + " | Soko47");
+    const title = esc(prod.title + " \\u00b7 KSh " + price.toLocaleString() + " | Soko47");
     const description = esc(prod.title + " for sale at " + (v.shop_name || "a trader") + " in " + (v.market_name || "") + ". Buy directly from the trader on Soko47.");
     res.setHeader("Content-Type", "text/html");
     res.setHeader("Cache-Control", "s-maxage=3600, stale-while-revalidate");
@@ -96,3 +98,17 @@ export default async function handler(req, res) {
     return res.status(302).end();
   }
 }
+`);
+console.log('api/og.js: supports product + shop + county, humans get SPA');
+
+fs.writeFileSync('vercel.json', `{
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/product/:id", "destination": "/api/og?type=product&id=:id" },
+    { "source": "/shop/:slug", "destination": "/api/og?type=shop&slug=:slug" },
+    { "source": "/markets/:county", "destination": "/api/og?type=county&county=:county" },
+    { "source": "/((?!api).*)", "destination": "/index.html" }
+  ]
+}
+`);
+console.log('vercel.json: shop + county routes now OG-rendered');

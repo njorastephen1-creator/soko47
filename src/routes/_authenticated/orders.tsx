@@ -1,12 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import {ReceiptText, Trash2, MessageCircle } from "lucide-react";
+import {ReceiptText, Trash2, MessageCircle, Star } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/use-session";
 import { formatKes } from "@/lib/cart";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 export const Route = createFileRoute("/_authenticated/orders")({ component: Orders });
 function Orders() {
   const { session } = useSession();
@@ -28,7 +29,26 @@ function Orders() {
       return data || [];
     },
   });
-  const remove = async (id: string) => {
+  const { data: reviewedSet } = useQuery({
+    queryKey: ["reviewed-vendors", session ? session.user.id : "anon"],
+    enabled: !!session,
+    queryFn: async () => {
+      const { data } = await supabase.from("reviews").select("vendor_id").eq("user_id", session!.user.id);
+      return new Set((data || []).map((r: any) => r.vendor_id));
+    },
+  });
+  const [rateFor, setRateFor] = useState<string | null>(null);
+  const [rateStars, setRateStars] = useState(5);
+  const [rateComment, setRateComment] = useState("");
+  const submitReview = async (vendorId: string) => {
+    const { error } = await supabase.from("reviews").insert({ vendor_id: vendorId, user_id: session!.user.id, rating: rateStars, comment: rateComment.trim() || null, reviewer_name: (session!.user_metadata?.full_name as string) || (session!.user.email || "buyer").split("@")[0] });
+    if (error) return toast.error(error.message.includes("duplicate") ? "You already reviewed this shop - asante!" : error.message);
+    setRateFor(null);
+    setRateComment("");
+    setRateStars(5);
+    qc.invalidateQueries();
+    toast.success("Review published - asante!");
+  };n  const remove = async (id: string) => {
     await supabase.from("order_items").delete().eq("order_id", id);
     const { error } = await supabase.from("orders").delete().eq("id", id);
     if (error) return toast.error(error.message);
@@ -64,6 +84,32 @@ function Orders() {
                 <Button asChild size="sm" variant="outline"><Link to="/receipt/$id" params={{ id: o.id }}><ReceiptText className="size-4" /> Receipt</Link></Button>
                 {deletable ? <Button size="sm" variant="outline" className="text-destructive" onClick={() => remove(o.id)}><Trash2 className="size-4" /> Delete order</Button> : null}
               </div>
+              {o.status === "fulfilled" && lines[0] && reviewedSet && !reviewedSet.has(lines[0].vendor_id) && (
+                <div className="mt-4 rounded-2xl border border-accent/30 bg-accent/5 p-4">
+                  {rateFor !== o.id ? (
+                    <button onClick={() => setRateFor(o.id)} className="flex w-full items-center justify-between text-sm font-semibold">
+                      <span>Rate this trader</span>
+                      <div className="flex gap-0.5">{[1,2,3,4,5].map(i => <Star key={i} className={"size-4 " + (i <= 5 ? "fill-warning text-warning" : "text-muted-foreground/30")} />)}</div>
+                    </button>
+                  ) : (
+                    <div>
+                      <p className="text-sm font-semibold">How was your order?</p>
+                      <div className="mt-2 flex gap-1">
+                        {[1,2,3,4,5].map(i => (
+                          <button key={i} onClick={() => setRateStars(i)} aria-label={i + " stars"}>
+                            <Star className={"size-6 " + (i <= rateStars ? "fill-warning text-warning" : "text-muted-foreground/40")} />
+                          </button>
+                        ))}
+                      </div>
+                      <Textarea className="mt-3" rows={2} value={rateComment} onChange={(e) => setRateComment(e.target.value)} placeholder="How was the service? The produce?" />
+                      <div className="mt-3 flex gap-2">
+                        <Button size="sm" onClick={() => submitReview(lines[0].vendor_id)}>Publish review</Button>
+                        <Button size="sm" variant="outline" onClick={() => setRateFor(null)}>Cancel</Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           );
         })}

@@ -247,6 +247,6 @@ export function SiteFooter() {
         </div>
       </div>
       <p className="border-t border-white/10 px-4 py-4 text-center text-xs opacity-70">© 2026 Soko47 · Made in Kenya</p>
-    </footer>
+    <div className="mt-6 flex flex-wrap gap-4 text-xs opacity-80"><Link to="/terms">Terms & Conditions</Link><Link to="/privacy">Privacy Policy</Link></div></footer>
   );
 }

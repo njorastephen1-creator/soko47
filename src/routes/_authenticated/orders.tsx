@@ -48,7 +48,8 @@ function Orders() {
     setRateStars(5);
     qc.invalidateQueries();
     toast.success("Review published - asante!");
-  };n  const remove = async (id: string) => {
+  };
+  const remove = async (id: string) => {
     await supabase.from("order_items").delete().eq("order_id", id);
     const { error } = await supabase.from("orders").delete().eq("id", id);
     if (error) return toast.error(error.message);

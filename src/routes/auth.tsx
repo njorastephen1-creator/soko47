@@ -26,6 +26,7 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [agree, setAgree] = useState(false);
   const navigate = useNavigate();
   useEffect(() => {
     const { data: listener } = supabase.auth.onAuthStateChange((event) => {
@@ -47,6 +48,7 @@ function AuthPage() {
   };
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (mode === "signup" && !agree) { toast.error("Please accept the Terms and Privacy Policy first"); return; }
     setBusy(true);
     if (mode === "signin") {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -139,11 +141,17 @@ function AuthPage() {
           )}
           <div><Label htmlFor="e">Email</Label><Input id="e" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></div>
           <div><Label htmlFor="p">Password</Label><Input id="p" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} /></div>
-          <Button type="submit" size="lg" className="w-full" disabled={busy}>{mode === "signin" ? "Sign in" : "Create account"}</Button>
+          {mode === "signup" && (
+            <label className="flex items-start gap-2 text-xs text-muted-foreground">
+              <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="mt-0.5 size-4 accent-primary" />
+              <span>I agree to the <Link to="/terms" className="font-medium text-accent-deep underline">Terms & Conditions</Link> and <Link to="/privacy" className="font-medium text-accent-deep underline">Privacy Policy</Link></span>
+            </label>
+          )}
+          <Button type="submit" size="lg" className="w-full" disabled={busy || (mode === "signup" && !agree)}>{mode === "signin" ? "Sign in" : "Create account"}</Button>
         </form>
-        <Button variant="outline" size="lg" className="w-full" onClick={sendOtp} disabled={busy}><ShieldCheck className="size-4" /> Email me a one-time code (OTP)</Button>
+        <Button variant="outline" size="lg" className="w-full" onClick={sendOtp} disabled={busy || (mode === "signup" && !agree)}><ShieldCheck className="size-4" /> Email me a one-time code (OTP)</Button>
         <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border" />or<span className="h-px flex-1 bg-border" /></div>
-        <Button variant="outline" size="lg" className="w-full" onClick={google}><GoogleIcon /> Continue with Google</Button>
+        <Button variant="outline" size="lg" className="w-full" onClick={google} disabled={busy || (mode === "signup" && !agree)}><GoogleIcon /> Continue with Google</Button>
         <div className="mt-4 space-y-2 text-center text-sm">
           {mode === "signin" && (<button className="block w-full text-muted-foreground underline hover:text-foreground" onClick={reset}>Forgot password? Reset by email</button>)}
           <button className="block w-full font-medium text-accent-deep underline" onClick={() => setMode(mode === "signin" ? "signup" : "signin")}>

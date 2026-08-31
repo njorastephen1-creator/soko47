@@ -246,7 +246,13 @@ export function SiteFooter() {
           </div>
         </div>
       </div>
-      <p className="border-t border-white/10 px-4 py-4 text-center text-xs opacity-70">© 2026 Soko47 · Made in Kenya</p>
-    <div className="mt-6 flex flex-wrap gap-4 text-xs opacity-80"><Link to="/terms">Terms & Conditions</Link><Link to="/privacy">Privacy Policy</Link></div></footer>
+      <div className="border-t border-white/10 px-4 py-4 text-center text-xs opacity-70">
+        <div className="flex flex-wrap justify-center gap-4 pb-2">
+          <Link to="/terms" className="hover:underline">Terms & Conditions</Link>
+          <Link to="/privacy" className="hover:underline">Privacy Policy</Link>
+        </div>
+        © 2026 Soko47 · Made in Kenya
+      </div>
+    </footer>
   );
 }
